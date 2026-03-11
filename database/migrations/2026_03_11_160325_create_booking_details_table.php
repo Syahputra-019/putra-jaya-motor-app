@@ -13,6 +13,17 @@ return new class extends Migration
     {
         Schema::create('booking_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('booking_id')->constrained()->cascadeOnDelete();
+
+            // Bisa berisi service, atau sparepart, boleh kosong (nullable)
+            $table->foreignId('service_id')->nullable()->constrained('services')->nullOnDelete();
+            $table->foreignId('sparepart_id')->nullable()->constrained('spareparts')->nullOnDelete();
+
+            $table->integer('quantity')->default(1);
+
+            // Harga satuan x quantity saat itu
+            $table->integer('sub_total')->default(0); 
+
             $table->timestamps();
         });
     }
