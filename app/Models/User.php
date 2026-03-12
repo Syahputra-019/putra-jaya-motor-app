@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +45,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // RELASI : satu user (pelanggan) bisa punya banyak booking 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
+
+    // RELASI : satu user (mekanik) bisa menangani banyak booking
+    public function handledBookings()
+    {
+        return $this->hasMany(Booking::class, 'mechanic_id');
     }
 }
