@@ -1,102 +1,100 @@
 <x-layout>
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800">Data Master Sparepart</h1>
-            <p class="text-sm text-slate-500">Kelola stok dan harga suku cadang bengkel.</p>
+    <div class="page-shell">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Inventori</p>
+                <h1 class="page-title">Data sparepart</h1>
+                <p class="page-description">Kelola stok dan harga suku cadang dengan tampilan tabel yang lebih rapi dan konsisten.</p>
+            </div>
+
+            <div class="page-actions">
+                <a href="{{ route('sparepart.create') }}" class="btn-primary">Tambah Sparepart</a>
+            </div>
         </div>
-        <a href="{{ route('sparepart.create') }}"
-            class="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white shadow-sm transition hover:bg-blue-700">
-            <span>+</span> Tambah Sparepart
-        </a>
-    </div>
 
-    @if (session('success'))
-        <div
-            class="mb-6 flex items-center justify-between rounded-r-lg border-l-4 border-emerald-500 bg-emerald-100 p-4 font-medium text-emerald-700 shadow-sm">
-            <span>{{ session('success') }}</span>
+        @if (session('success'))
+            <div class="alert alert-success">
+                <div class="font-black">OK</div>
+                <div>{{ session('success') }}</div>
+            </div>
+        @endif
+
+        <div class="table-card">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Sparepart</th>
+                            <th>Harga</th>
+                            <th>Stok</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($spareparts as $index => $item)
+                            <tr>
+                                <td>{{ ($spareparts->firstItem() ?? 1) + $index }}</td>
+                                <td class="font-semibold text-slate-900">{{ $item->nama_sparepart }}</td>
+                                <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
+                                <td>
+                                    <span class="badge {{ $item->stok > 5 ? 'badge-success' : 'badge-danger' }}">
+                                        {{ $item->stok }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="{{ route('sparepart.edit', $item->id) }}" class="btn-warning !px-4 !py-2">Edit</a>
+                                        <form action="{{ route('sparepart.destroy', $item->id) }}" method="POST" class="form-hapus inline-block">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" data-name="{{ $item->nama_sparepart }}"
+                                                class="btn-hapus btn-danger !px-4 !py-2">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state my-4">
+                                        <div class="empty-state-icon">SP</div>
+                                        <h3 class="text-xl font-bold text-slate-950">Belum ada sparepart</h3>
+                                        <p class="max-w-lg text-sm leading-6 text-slate-500">Tambahkan sparepart baru untuk mulai membangun inventori bengkel.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-    @endif
 
-    <div class="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
-        <table class="w-full border-collapse text-left">
-            <thead>
-                <tr class="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wider text-slate-600">
-                    <th class="p-4 font-semibold">No</th>
-                    <th class="p-4 font-semibold">Nama Sparepart</th>
-                    <th class="p-4 font-semibold">Harga</th>
-                    <th class="p-4 font-semibold">Stok</th>
-                    <th class="p-4 text-center font-semibold">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-
-                @forelse ($spareparts as $index => $item)
-                    <tr class="transition hover:bg-slate-50">
-                        <td class="p-4 text-slate-700">{{ $index + 1 }}</td>
-                        <td class="p-4 font-medium text-slate-800">{{ $item->nama_sparepart }}</td>
-                        <td class="p-4 text-slate-700">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
-                        <td class="p-4 text-slate-700">
-                            <span
-                                class="{{ $item->stok > 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }} rounded-md px-2 py-1 text-xs font-bold">
-                                {{ $item->stok }}
-                            </span>
-                        </td>
-                        <td class="flex justify-center gap-2 p-4">
-                            <a href="{{ route('sparepart.edit', $item->id) }}"
-                                class="rounded-md bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 transition hover:bg-amber-200">Edit</a>
-
-                            <form action="{{ route('sparepart.destroy', $item->id) }}" method="POST"
-                                class="form-hapus inline-block">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" data-name="{{ $item->nama_sparepart }}"
-                                    class="btn-hapus rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700 transition hover:bg-red-200">
-                                    Hapus
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="p-8 text-center text-slate-500">
-                            Belum ada data sparepart. Silakan klik tombol "Tambah Sparepart" di atas.
-                        </td>
-                    </tr>
-                @endforelse
-
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-4">
-        {{ $spareparts->links() }}
+        <div class="surface-card-tight">
+            {{ $spareparts->links() }}
+        </div>
     </div>
 
     <script>
-        // Cari semua tombol dengan class 'btn-hapus'
-        const tombolHapus = document.querySelectorAll('.btn-hapus');
-
-        tombolHapus.forEach(tombol => {
-            tombol.addEventListener('click', function() {
-                // Ambil nama barang dari atribut data-name
-                const namaBarang = this.getAttribute('data-name');
-                // Ambil form terdekat dari tombol yang diklik
+        document.querySelectorAll('.btn-hapus').forEach((button) => {
+            button.addEventListener('click', function() {
                 const form = this.closest('.form-hapus');
+                const namaBarang = this.getAttribute('data-name');
 
-                // Tampilkan SweetAlert di tengah halaman!
                 Swal.fire({
-                    title: 'Yakin mau hapus?',
-                    text: "Data " + namaBarang + " akan hilang permanen lho!",
+                    title: 'Hapus sparepart ini?',
+                    text: 'Data ' + namaBarang + ' akan dihapus permanen.',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#ef4444', // Warna merah Tailwind
-                    cancelButtonColor: '#94a3b8', // Warna abu-abu Tailwind
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true // Tukar posisi tombol
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonColor: '#0d1f3a',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
                 }).then((result) => {
-                    // Kalau user klik "Ya, Hapus!"
                     if (result.isConfirmed) {
-                        form.submit(); // Baru form-nya dikirim ke controller
+                        form.submit();
                     }
                 });
             });

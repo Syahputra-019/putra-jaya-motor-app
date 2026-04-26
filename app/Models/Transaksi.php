@@ -10,6 +10,7 @@ class Transaksi extends Model
     use HasFactory;
 
     protected $fillable = [
+        'booking_id',
         'kode_transaksi',
         'tanggal',
         'pelanggan_id',
@@ -23,6 +24,11 @@ class Transaksi extends Model
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
+    }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     public function service()

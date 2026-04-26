@@ -1,34 +1,56 @@
 <x-layout>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-800">Edit Data Sparepart</h1>
-        <p class="text-slate-500 text-sm">Perbarui informasi harga atau stok suku cadang.</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 max-w-2xl">
-        
-        <form action="{{ route('sparepart.update', $sparepart->id) }}" method="POST">
-            @csrf 
-            @method('PUT') <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-2">Nama Sparepart</label>
-                <input type="text" name="nama_sparepart" value="{{ $sparepart->nama_sparepart }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
+    <div class="page-shell-sm">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Inventori</p>
+                <h1 class="page-title">Edit sparepart</h1>
+                <p class="page-description">Perbarui harga dan stok sparepart dengan struktur form yang sama seperti modul lain.</p>
             </div>
+        </div>
 
-            <div class="mb-4 grid grid-cols-2 gap-4">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Harga (Rp)</label>
-                    <input type="number" name="harga" value="{{ $sparepart->harga }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Stok Saat Ini</label>
-                    <input type="number" name="stok" value="{{ $sparepart->stok }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
+                    <div class="font-bold">Data belum lengkap</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
+        @endif
 
-            <div class="flex justify-end gap-3 mt-6">
-                <a href="{{ route('sparepart.index') }}" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium">Batal</a>
-                <button type="submit" class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition font-medium">Update Data</button>
-            </div>
-        </form>
-        
+        <div class="surface-card">
+            <form action="{{ route('sparepart.update', $sparepart->id) }}" method="POST" class="form-shell">
+                @csrf
+                @method('PUT')
+
+                <div class="form-field">
+                    <label class="field-label" for="nama_sparepart">Nama sparepart</label>
+                    <input id="nama_sparepart" type="text" name="nama_sparepart"
+                        value="{{ old('nama_sparepart', $sparepart->nama_sparepart) }}" class="form-input" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="harga">Harga</label>
+                        <input id="harga" type="number" name="harga" value="{{ old('harga', $sparepart->harga) }}"
+                            class="form-input" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="stok">Stok</label>
+                        <input id="stok" type="number" name="stok" value="{{ old('stok', $sparepart->stok) }}"
+                            class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ route('sparepart.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-accent">Update Data</button>
+                </div>
+            </form>
+        </div>
     </div>
 </x-layout>

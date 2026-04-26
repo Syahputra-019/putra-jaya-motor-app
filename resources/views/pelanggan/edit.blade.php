@@ -1,46 +1,54 @@
 <x-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Edit Data Pelanggan') }}
-        </h2>
-    </x-slot>
+    <div class="page-shell-sm">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Customer Data</p>
+                <h1 class="page-title">Edit pelanggan</h1>
+                <p class="page-description">Perbarui informasi pelanggan tanpa mengubah ritme dan struktur tampilan form.</p>
+            </div>
+        </div>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    
-                    <form action="{{ route('pelanggan.update', $pelanggan->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        
-                        <div class="mb-4">
-                            <label for="nama_pelanggan" class="block text-gray-700 text-sm font-bold mb-2">Nama Pelanggan</label>
-                            <input type="text" name="nama_pelanggan" id="nama_pelanggan" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('nama_pelanggan', $pelanggan->nama_pelanggan) }}" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="no_telp" class="block text-gray-700 text-sm font-bold mb-2">No. Telepon / WhatsApp</label>
-                            <input type="text" name="no_telp" id="no_telp" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('no_telp', $pelanggan->no_telp) }}" required>
-                        </div>
-
-                        <div class="mb-6">
-                            <label for="alamat" class="block text-gray-700 text-sm font-bold mb-2">Alamat Lengkap</label>
-                            <textarea name="alamat" id="alamat" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('alamat', $pelanggan->alamat) }}</textarea>
-                        </div>
-
-                        <div class="flex items-center justify-end space-x-3">
-                            <a href="{{ route('pelanggan.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
-                                Batal
-                            </a>
-                            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
-                                Update Data
-                            </button>
-                        </div>
-                    </form>
-
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>
+                    <div class="font-bold">Data belum lengkap</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
+        @endif
+
+        <div class="surface-card">
+            <form action="{{ route('pelanggan.update', $pelanggan->id) }}" method="POST" class="form-shell">
+                @csrf
+                @method('PUT')
+
+                <div class="form-field">
+                    <label class="field-label" for="nama_pelanggan">Nama pelanggan</label>
+                    <input id="nama_pelanggan" type="text" name="nama_pelanggan"
+                        value="{{ old('nama_pelanggan', $pelanggan->nama_pelanggan) }}" class="form-input" required>
+                </div>
+
+                <div class="form-field">
+                    <label class="field-label" for="no_telp">No. telepon / WhatsApp</label>
+                    <input id="no_telp" type="text" name="no_telp" value="{{ old('no_telp', $pelanggan->no_telp) }}"
+                        class="form-input" required>
+                </div>
+
+                <div class="form-field">
+                    <label class="field-label" for="alamat">Alamat lengkap</label>
+                    <textarea id="alamat" name="alamat" class="form-textarea">{{ old('alamat', $pelanggan->alamat) }}</textarea>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ route('pelanggan.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-accent">Update Data</button>
+                </div>
+            </form>
         </div>
     </div>
 </x-layout>

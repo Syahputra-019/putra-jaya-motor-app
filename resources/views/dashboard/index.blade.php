@@ -1,213 +1,200 @@
 <x-layout>
-    <div class="mb-6 flex flex-col justify-between sm:flex-row sm:items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
-            <p class="text-sm text-slate-500">Ringkasan aktivitas dan pendapatan bengkel <span
-                    class="font-bold text-blue-600">({{ $judulFilter }})</span>.</p>
+    <div class="page-shell">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Workshop Overview</p>
+                <h1 class="page-title">Dashboard operasional</h1>
+                <p class="page-description">
+                    Ringkasan performa bengkel untuk periode <span class="font-bold text-[color:var(--brand-navy-800)]">{{ $judulFilter }}</span>,
+                    dengan visual yang lebih konsisten dan fokus pada angka penting.
+                </p>
+            </div>
+
+            <div class="page-actions">
+                <form action="{{ route('dashboard') }}" method="GET" class="action-toolbar">
+                    <select name="filter" onchange="this.form.submit()" class="form-select min-w-[180px]">
+                        <option value="hari_ini" {{ $filter == 'hari_ini' ? 'selected' : '' }}>Hari Ini</option>
+                        <option value="bulan_ini" {{ $filter == 'bulan_ini' ? 'selected' : '' }}>Bulan Ini</option>
+                        <option value="tahun_ini" {{ $filter == 'tahun_ini' ? 'selected' : '' }}>Tahun Ini</option>
+                    </select>
+                </form>
+                <a href="{{ route('dashboard.cetak', ['filter' => $filter]) }}" target="_blank" class="btn-secondary">Cetak PDF</a>
+                <a href="{{ route('dashboard.excel', ['filter' => $filter]) }}" class="btn-accent">Export Excel</a>
+            </div>
         </div>
 
-        <div class="mt-4 sm:mt-0">
-            <form action="{{ route('dashboard') }}" method="GET"
-                class="flex items-center space-x-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
-                <label for="filter" class="text-sm font-semibold text-slate-600">📅 Filter Waktu:</label>
-                <select name="filter" id="filter" onchange="this.form.submit()"
-                    class="cursor-pointer rounded border-0 bg-slate-50 text-sm font-bold text-slate-700 focus:ring-0">
-                    <option value="hari_ini" {{ $filter == 'hari_ini' ? 'selected' : '' }}>Hari Ini</option>
-                    <option value="bulan_ini" {{ $filter == 'bulan_ini' ? 'selected' : '' }}>Bulan Ini</option>
-                    <option value="tahun_ini" {{ $filter == 'tahun_ini' ? 'selected' : '' }}>Tahun Ini</option>
-                </select>
-            </form>
-            <div class="mt-4 flex items-center space-x-3 sm:mt-0">
+        @if ($menungguAcc > 0)
+            <div class="alert alert-warning">
+                <div class="font-black">!</div>
+                <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <div class="font-bold">Ada {{ $menungguAcc }} transaksi menunggu konfirmasi pembayaran.</div>
+                        <div class="mt-1 text-sm">Pelanggan sudah mengirim bukti transfer manual dan menunggu pengecekan admin.</div>
+                    </div>
+                    <a href="{{ route('transaksi.index') }}" class="btn-accent">Cek Transaksi</a>
+                </div>
+            </div>
+        @endif
 
-                <div class="relative z-50 inline-block text-left">
-                    <button type="button" onclick="document.getElementById('dropdownCetak').classList.toggle('hidden')"
-                        class="flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none">
-                        🖨️ Cetak Laporan
-                        <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </button>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Pendapatan</div>
+                <div class="metric-value">Rp {{ number_format($pendapatanTotal, 0, ',', '.') }}</div>
+                <div class="metric-caption">Pendapatan yang sudah berstatus lunas pada periode terpilih.</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Pendapatan Jasa</div>
+                <div class="metric-value">Rp {{ number_format($pendapatanJasa, 0, ',', '.') }}</div>
+                <div class="metric-caption">Akumulasi biaya jasa setelah dikurangi pendapatan sparepart.</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Pendapatan Part</div>
+                <div class="metric-value">Rp {{ number_format($pendapatanSparepart, 0, ',', '.') }}</div>
+                <div class="metric-caption">Nilai total sparepart yang terjual pada transaksi lunas.</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Servis Selesai</div>
+                <div class="metric-value">{{ $transaksiHariIni }}</div>
+                <div class="metric-caption">Jumlah transaksi lunas pada filter waktu yang sedang aktif.</div>
+            </div>
+        </div>
 
-                    <div id="dropdownCetak"
-                        class="absolute right-0 mt-2 hidden w-40 origin-top-right overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-slate-200 focus:outline-none">
-                        <div class="py-1">
-                            <a href="{{ route('dashboard.cetak', ['filter' => $filter]) }}" target="_blank"
-                                class="block px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-red-600">
-                                📄 Cetak PDF
-                            </a>
-                            <a href="{{ route('dashboard.excel', ['filter' => $filter]) }}"
-                                class="block border-t border-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-emerald-600">
-                                📊 Export Excel
-                            </a>
-                        </div>
+        <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+            <div class="surface-card">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <h2 class="section-title">Grafik pendapatan</h2>
+                        <p class="section-subtitle">Performa 6 bulan terakhir dengan palet warna biru tua dan kuning.</p>
                     </div>
                 </div>
-
-            </div>
-        </div>
-    </div>
-
-    @if ($menungguAcc > 0)
-        <div
-            class="mb-6 flex items-center justify-between rounded-xl border-l-4 border-yellow-500 bg-yellow-50 p-4 shadow-sm transition-all hover:shadow-md">
-            <div class="flex items-center">
-                <span class="mr-4 text-3xl">⏳</span>
-                <div>
-                    <h3 class="text-lg font-bold text-yellow-800">Ada {{ $menungguAcc }} Transaksi Menunggu
-                        Konfirmasi!
-                    </h3>
-                    <p class="text-sm text-yellow-700">Pelanggan sudah upload bukti transfer manual. Silakan cek dan ACC
-                        agar stok terpotong.</p>
+                <div class="mt-6 h-[320px] w-full">
+                    <canvas id="chartPendapatan"></canvas>
                 </div>
             </div>
-            <a href="{{ route('transaksi.index') }}"
-                class="rounded bg-yellow-500 px-5 py-2.5 text-sm font-bold text-white shadow transition hover:bg-yellow-600">
-                Cek Transaksi
-            </a>
-        </div>
-    @endif
 
-    <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-4">
-        <div class="rounded-xl border-l-4 border-blue-500 bg-white p-6 shadow-sm transition hover:shadow-md">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Pendapatan</h3>
-            <p class="mt-2 text-2xl font-black text-slate-800">Rp {{ number_format($pendapatanTotal, 0, ',', '.') }}
-            </p>
-        </div>
-
-        <div class="rounded-xl border-l-4 border-indigo-500 bg-white p-6 shadow-sm transition hover:shadow-md">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pendapatan Jasa</h3>
-            <p class="mt-2 text-2xl font-black text-slate-800">Rp {{ number_format($pendapatanJasa, 0, ',', '.') }}</p>
-        </div>
-
-        <div class="rounded-xl border-l-4 border-purple-500 bg-white p-6 shadow-sm transition hover:shadow-md">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pendapatan Part</h3>
-            <p class="mt-2 text-2xl font-black text-slate-800">Rp
-                {{ number_format($pendapatanSparepart, 0, ',', '.') }}
-            </p>
-        </div>
-
-        <div class="rounded-xl border-l-4 border-emerald-500 bg-white p-6 shadow-sm transition hover:shadow-md">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Servis Selesai</h3>
-            <p class="mt-2 text-2xl font-black text-slate-800">{{ $transaksiHariIni }} <span
-                    class="text-sm font-normal text-slate-500">Motor</span></p>
-        </div>
-    </div>
-
-    @if ($jumlahStokMenipis > 0)
-        <div class="mb-6 overflow-hidden rounded-xl border border-red-100 bg-white shadow-sm">
-            <div class="border-b border-red-100 bg-red-50 px-6 py-4">
-                <h2 class="flex items-center text-lg font-bold text-red-700">
-                    ⚠️ Segera Restock Sparepart Berikut!
-                </h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-slate-700">
-                        <tr>
-                            <th class="px-6 py-3 font-semibold">Nama Sparepart</th>
-                            <th class="px-6 py-3 text-center font-semibold">Sisa Stok</th>
-                            <th class="px-6 py-3 text-right font-semibold">Harga Jual</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach ($stokMenipis as $item)
-                            <tr class="hover:bg-slate-50">
-                                <td class="px-6 py-3 font-medium text-slate-800">{{ $item->nama_sparepart }}</td>
-                                <td class="px-6 py-3 text-center">
-                                    <span class="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
-                                        {{ $item->stok }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-3 text-right">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    @endif
-
-    <div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div class="rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-6">
-            <div class="border-b border-slate-100 bg-slate-50 px-6 py-4">
-                <h3 class="font-bold text-slate-700">📈 Grafik Pendapatan (6 Bulan Terakhir)</h3>
-            </div>
-            <div class="relative p-6 w-full" style="height: 350px;">
-                <canvas id="chartPendapatan"></canvas>
-            </div>
-        </div>
-
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-6">
-            <div class="border-b border-slate-100 bg-slate-50 px-6 py-4">
-                <h3 class="font-bold text-slate-700">🍩 5 Sparepart Terlaris</h3>
-            </div>
-            <div class="w-full p-4">
-                <div class="relative w-full" style="height: 300px;">
+            <div class="surface-card">
+                <div>
+                    <h2 class="section-title">Sparepart terlaris</h2>
+                    <p class="section-subtitle">Top 5 sparepart dengan penjualan tertinggi.</p>
+                </div>
+                <div class="mt-6 h-[320px] w-full">
                     <canvas id="chartTerlaris"></canvas>
                 </div>
             </div>
         </div>
+
+        <div class="table-card">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+                <div>
+                    <h2 class="section-title">Stok menipis</h2>
+                    <p class="section-subtitle">Daftar sparepart yang perlu segera direstock.</p>
+                </div>
+                <span class="badge {{ $jumlahStokMenipis > 0 ? 'badge-danger' : 'badge-success' }}">
+                    {{ $jumlahStokMenipis }} item
+                </span>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nama Sparepart</th>
+                            <th class="text-center">Sisa Stok</th>
+                            <th class="text-right">Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($stokMenipis as $item)
+                            <tr>
+                                <td class="font-semibold text-slate-900">{{ $item->nama_sparepart }}</td>
+                                <td class="text-center">
+                                    <span class="badge badge-danger">{{ $item->stok }}</span>
+                                </td>
+                                <td class="text-right">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3">
+                                    <div class="empty-state my-4">
+                                        <div class="empty-state-icon">ST</div>
+                                        <h3 class="text-xl font-bold text-slate-950">Stok aman</h3>
+                                        <p class="max-w-lg text-sm leading-6 text-slate-500">Belum ada sparepart yang berada di bawah batas stok minimum.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
-        window.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('dropdownCetak');
-            const button = dropdown.previousElementSibling;
+        const chartTextColor = '#334155';
+        const chartGridColor = 'rgba(15, 23, 42, 0.08)';
 
-            if (!button.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-    </script>
-
-    <script>
-        // --- GRAFIK PENDAPATAN ---
-        const ctxPendapatan = document.getElementById('chartPendapatan');
-        new Chart(ctxPendapatan, {
+        new Chart(document.getElementById('chartPendapatan'), {
             type: 'line',
             data: {
                 labels: {!! json_encode($pendapatanBulanan->pluck('bulan')) !!},
                 datasets: [{
-                    label: 'Pendapatan (Rp)',
+                    label: 'Pendapatan',
                     data: {!! json_encode($pendapatanBulanan->pluck('total')) !!},
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1,
+                    borderColor: '#13305a',
+                    backgroundColor: 'rgba(246, 197, 75, 0.22)',
                     fill: true,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)'
+                    borderWidth: 3,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#f6c54b',
+                    pointBorderColor: '#13305a'
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: chartTextColor
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: chartTextColor },
+                        grid: { color: chartGridColor }
+                    },
+                    y: {
+                        ticks: { color: chartTextColor },
+                        grid: { color: chartGridColor }
+                    }
+                }
             }
         });
 
-        // --- GRAFIK TERLARIS ---
-        const ctxTerlaris = document.getElementById('chartTerlaris');
-        new Chart(ctxTerlaris, {
+        new Chart(document.getElementById('chartTerlaris'), {
             type: 'doughnut',
             data: {
                 labels: {!! json_encode($sparepartTerlaris->pluck('nama_sparepart')) !!},
                 datasets: [{
                     data: {!! json_encode($sparepartTerlaris->pluck('total_terjual')) !!},
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
-                    ]
+                    backgroundColor: ['#13305a', '#1b447d', '#f6c54b', '#ffd768', '#94a3b8'],
+                    borderWidth: 0
                 }]
             },
-
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                    padding: 10
-                },
                 plugins: {
-                    legend: { 
-                        position: 'right', // 🔥 INI KUNCI BUAT MINDAHIN KE KANAN
+                    legend: {
+                        position: 'bottom',
                         labels: {
-                            boxWidth: 15, // Biar kotak warnanya pas, gak kebesaran
-                            padding: 15   // Biar jarak antar tulisan lega
+                            color: chartTextColor,
+                            padding: 18,
+                            usePointStyle: true
                         }
-                    } 
+                    }
                 }
             }
         });

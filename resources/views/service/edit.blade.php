@@ -1,40 +1,47 @@
 <x-layout>
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-xl mx-auto bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Edit Jasa Servis</h2>
+    <div class="page-shell-sm">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Layanan</p>
+                <h1 class="page-title">Edit jasa servis</h1>
+                <p class="page-description">Perbarui nama layanan dan biaya agar data transaksi tetap konsisten.</p>
+            </div>
+        </div>
 
-            @if ($errors->any())
-                <div class="mb-6 rounded-lg border border-red-400 bg-red-100 p-4 text-red-700">
-                    <strong class="font-bold">Gagal Menyimpan Data!</strong>
-                    <ul class="mt-2 list-inside list-disc text-sm">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>
+                    <div class="font-bold">Data belum lengkap</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            <form action="{{ route('service.update', $service->id) }}" method="POST">
+        <div class="surface-card">
+            <form action="{{ route('service.update', $service->id) }}" method="POST" class="form-shell">
                 @csrf
                 @method('PUT')
 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Nama Jasa Servis <span class="text-red-500">*</span></label>
-                    <input type="text" name="nama_service" value="{{ $service->nama_service }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <div class="form-field">
+                    <label class="field-label" for="nama_service">Nama jasa servis</label>
+                    <input id="nama_service" type="text" name="nama_service"
+                        value="{{ old('nama_service', $service->nama_service) }}" class="form-input" required>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-gray-700 font-semibold mb-2">Harga / Biaya (Rp) <span class="text-red-500">*</span></label>
-                    <input type="number" name="harga" value="{{ $service->harga }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required min="0">
+                <div class="form-field">
+                    <label class="field-label" for="harga">Harga</label>
+                    <input id="harga" type="number" name="harga" value="{{ old('harga', $service->harga) }}"
+                        class="form-input" required min="0">
                 </div>
 
-                <div class="flex justify-end space-x-3">
-                    <a href="{{ route('service.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        Batal
-                    </a>
-                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        Update Data
-                    </button>
+                <div class="form-actions">
+                    <a href="{{ route('service.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-accent">Update Data</button>
                 </div>
             </form>
         </div>

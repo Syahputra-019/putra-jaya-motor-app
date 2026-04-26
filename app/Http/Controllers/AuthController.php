@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pelanggan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -60,12 +62,21 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'pelanggan' // Sesuaikan dengan sistem role di database lu
-        ]);
+        DB::transaction(function () use ($request) {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'pelanggan',
+            ]);
+
+            Pelanggan::create([
+                'user_id' => $user->id,
+                'nama_pelanggan' => $user->name,
+                'no_telp' => $request->input('no_telp', 'pending-' . $user->id),
+                'alamat' => $request->input('alamat'),
+            ]);
+        });
 
         return redirect()->route('landing')->with('success', 'Registrasi berhasil! Silakan login.');
     }

@@ -1,35 +1,55 @@
 <x-layout>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-800">Tambah Sparepart Baru</h1>
-        <p class="text-slate-500 text-sm">Masukkan detail suku cadang ke dalam sistem.</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 max-w-2xl">
-        
-        <form action="{{ route('sparepart.store') }}" method="POST">
-            @csrf 
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-2">Nama Sparepart</label>
-                <input type="text" name="nama_sparepart" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: Kampas Rem Depan" required>
+    <div class="page-shell-sm">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Inventori</p>
+                <h1 class="page-title">Tambah sparepart</h1>
+                <p class="page-description">Masukkan detail sparepart baru ke sistem dengan tampilan form yang lebih rapi dan konsisten.</p>
             </div>
+        </div>
 
-            <div class="mb-4 grid grid-cols-2 gap-4">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Harga (Rp)</label>
-                    <input type="number" name="harga" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 50000" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Stok Awal</label>
-                    <input type="number" name="stok" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 10" required>
+                    <div class="font-bold">Data belum lengkap</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
+        @endif
 
-            <div class="flex justify-end gap-3 mt-6">
-                <a href="{{ route('sparepart.index') }}" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium">Batal</a>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Simpan Data</button>
-            </div>
-        </form>
-        
+        <div class="surface-card">
+            <form action="{{ route('sparepart.store') }}" method="POST" class="form-shell">
+                @csrf
+
+                <div class="form-field">
+                    <label class="field-label" for="nama_sparepart">Nama sparepart</label>
+                    <input id="nama_sparepart" type="text" name="nama_sparepart" value="{{ old('nama_sparepart') }}"
+                        class="form-input" placeholder="Contoh: Kampas Rem Depan" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="harga">Harga</label>
+                        <input id="harga" type="number" name="harga" value="{{ old('harga') }}" class="form-input"
+                            placeholder="Contoh: 50000" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="stok">Stok awal</label>
+                        <input id="stok" type="number" name="stok" value="{{ old('stok') }}" class="form-input"
+                            placeholder="Contoh: 10" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ route('sparepart.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-primary">Simpan Data</button>
+                </div>
+            </form>
+        </div>
     </div>
 </x-layout>

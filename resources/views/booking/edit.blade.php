@@ -1,25 +1,36 @@
 <x-layout>
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Edit Antrean Booking</h2>
+    <div class="page-shell-sm">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Queue Management</p>
+                <h1 class="page-title">Edit booking</h1>
+                <p class="page-description">Perbarui antrean booking dengan pola form yang tetap seragam dan nyaman digunakan.</p>
+            </div>
+        </div>
 
-            @if ($errors->any())
-                <div class="mb-6 rounded-lg border border-red-400 bg-red-100 p-4 text-red-700">
-                    <strong class="font-bold">Gagal Menyimpan Data!</strong>
-                    <ul class="mt-2 list-inside list-disc text-sm">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>
+                    <div class="font-bold">Data belum lengkap</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            <form action="{{ route('booking.update', $booking->id) }}" method="POST">
+        <div class="surface-card">
+            <form action="{{ route('booking.update', $booking->id) }}" method="POST" class="form-shell">
                 @csrf
-                @method('PUT') <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Pelanggan <span class="text-red-500">*</span></label>
-                    <select name="pelanggan_id" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        @foreach($pelanggans as $p)
+                @method('PUT')
+
+                <div class="form-field">
+                    <label class="field-label" for="pelanggan_id">Pilih pelanggan</label>
+                    <select id="pelanggan_id" name="pelanggan_id" class="form-select" required>
+                        @foreach ($pelanggans as $p)
                             <option value="{{ $p->id }}" {{ $booking->pelanggan_id == $p->id ? 'selected' : '' }}>
                                 {{ $p->nama_pelanggan ?? $p->nama }}
                             </option>
@@ -27,42 +38,46 @@
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Plat Nomor <span class="text-red-500">*</span></label>
-                        <input type="text" name="plat_nomor" value="{{ $booking->plat_nomor }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="plat_nomor">Plat nomor</label>
+                        <input id="plat_nomor" type="text" name="plat_nomor" value="{{ old('plat_nomor', $booking->plat_nomor) }}"
+                            class="form-input" required>
                     </div>
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Tipe Motor <span class="text-red-500">*</span></label>
-                        <input type="text" name="tipe_motor" value="{{ $booking->tipe_motor }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <div class="form-field">
+                        <label class="field-label" for="tipe_motor">Tipe motor</label>
+                        <input id="tipe_motor" type="text" name="tipe_motor" value="{{ old('tipe_motor', $booking->tipe_motor) }}"
+                            class="form-input" required>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Jadwal Booking <span class="text-red-500">*</span></label>
-                    <input type="datetime-local" name="jadwal_booking" value="{{ \Carbon\Carbon::parse($booking->jadwal_booking)->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <div class="form-field">
+                    <label class="field-label" for="jadwal_booking">Jadwal booking</label>
+                    <input id="jadwal_booking" type="datetime-local" name="jadwal_booking"
+                        value="{{ \Carbon\Carbon::parse(old('jadwal_booking', $booking->jadwal_booking))->format('Y-m-d\TH:i') }}"
+                        class="form-input" required>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Keluhan Kerusakan <span class="text-red-500">*</span></label>
-                    <textarea name="keluhan" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>{{ $booking->keluhan }}</textarea>
+                <div class="form-field">
+                    <label class="field-label" for="keluhan">Keluhan kendaraan</label>
+                    <textarea id="keluhan" name="keluhan" class="form-textarea" required>{{ old('keluhan', $booking->keluhan) }}</textarea>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Mekanik Pengerja</label>
-                        <select name="mekanik_id" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">-- Belum Ditentukan --</option>
-                            @foreach($mekaniks as $m)
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="mekanik_id">Mekanik pengerja</label>
+                        <select id="mekanik_id" name="mekanik_id" class="form-select">
+                            <option value="">-- Belum ditentukan --</option>
+                            @foreach ($mekaniks as $m)
                                 <option value="{{ $m->id }}" {{ $booking->mekanik_id == $m->id ? 'selected' : '' }}>
                                     {{ $m->nama_mekanik ?? $m->nama }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Status Antrean <span class="text-red-500">*</span></label>
-                        <select name="status" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <div class="form-field">
+                        <label class="field-label" for="status">Status antrean</label>
+                        <select id="status" name="status" class="form-select" required>
                             <option value="menunggu" {{ $booking->status == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
                             <option value="diproses" {{ $booking->status == 'diproses' ? 'selected' : '' }}>Diproses</option>
                             <option value="selesai" {{ $booking->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
@@ -71,13 +86,9 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-3 mt-6">
-                    <a href="{{ route('booking.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        Batal
-                    </a>
-                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        Update Data
-                    </button>
+                <div class="form-actions">
+                    <a href="{{ route('booking.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-accent">Update Data</button>
                 </div>
             </form>
         </div>

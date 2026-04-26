@@ -1,57 +1,76 @@
 <x-layout>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-800">Laporan Pendapatan Bengkel</h1>
-    </div>
-
-    <div class="bg-white p-6 rounded-xl shadow-sm border mb-6">
-        <form action="{{ route('laporan.index') }}" method="GET" class="flex gap-4 items-end">
-            <div>
-                <label class="block text-sm font-medium mb-1">Dari</label>
-                <input type="date" name="start_date" value="{{ $startDate }}" class="border rounded-md px-3 py-2">
+    <div class="page-shell">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Revenue Report</p>
+                <h1 class="page-title">Laporan pendapatan</h1>
+                <p class="page-description">Filter performa transaksi berdasarkan rentang tanggal dengan kartu ringkasan dan tabel yang seragam.</p>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Sampai</label>
-                <input type="date" name="end_date" value="{{ $endDate }}" class="border rounded-md px-3 py-2">
+        </div>
+
+        <div class="surface-card">
+            <form action="{{ route('laporan.index') }}" method="GET" class="form-grid-3">
+                <div class="form-field">
+                    <label class="field-label" for="start_date">Dari tanggal</label>
+                    <input id="start_date" type="date" name="start_date" value="{{ $startDate }}" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="end_date">Sampai tanggal</label>
+                    <input id="end_date" type="date" name="end_date" value="{{ $endDate }}" class="form-input">
+                </div>
+                <div class="form-field justify-end">
+                    <label class="field-label opacity-0">Aksi</label>
+                    <button type="submit" class="btn-primary w-full md:w-auto">Terapkan Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="metric-grid md:grid-cols-2 xl:grid-cols-2">
+            <div class="metric-card">
+                <div class="metric-label">Total Pendapatan</div>
+                <div class="metric-value">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</div>
+                <div class="metric-caption">Akumulasi pendapatan dari rentang tanggal terpilih.</div>
             </div>
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Filter</button>
-        </form>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-emerald-500">
-            <p class="text-sm text-slate-500 font-semibold uppercase">Total Pendapatan</p>
-            <h2 class="text-3xl font-black text-slate-800">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h2>
+            <div class="metric-card">
+                <div class="metric-label">Total Transaksi</div>
+                <div class="metric-value">{{ $totalTransaksi }}</div>
+                <div class="metric-caption">Jumlah nota transaksi yang tercatat pada periode ini.</div>
+            </div>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-            <p class="text-sm text-slate-500 font-semibold uppercase">Total Transaksi</p>
-            <h2 class="text-3xl font-black text-slate-800">{{ $totalTransaksi }} Nota</h2>
-        </div>
-    </div>
 
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden border">
-        <table class="w-full text-left">
-            <thead class="bg-slate-50 border-b">
-                <tr>
-                    <th class="px-6 py-4">Tanggal</th>
-                    <th class="px-6 py-4">Nota</th>
-                    <th class="px-6 py-4">Pelanggan</th>
-                    <th class="px-6 py-4 text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                @forelse($transaksis as $t)
-                <tr>
-                    <td class="px-6 py-4">{{ $t->tanggal }}</td>
-                    <td class="px-6 py-4 font-mono text-blue-600">{{ $t->kode_transaksi }}</td>
-                    <td class="px-6 py-4">{{ $t->pelanggan->nama_pelanggan ?? 'Umum' }}</td>
-                    <td class="px-6 py-4 text-right font-bold">Rp {{ number_format($t->total_biaya, 0, ',', '.') }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" class="px-6 py-4 text-center text-slate-500">Tidak ada data transaksi.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="table-card">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Kode Nota</th>
+                            <th>Pelanggan</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($transaksis as $t)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($t->tanggal)->format('d M Y') }}</td>
+                                <td class="font-semibold text-[color:var(--brand-navy-800)]">{{ $t->kode_transaksi }}</td>
+                                <td>{{ $t->pelanggan->nama_pelanggan ?? 'Umum' }}</td>
+                                <td class="text-right font-semibold text-slate-900">Rp {{ number_format($t->total_biaya, 0, ',', '.') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state my-4">
+                                        <div class="empty-state-icon">LP</div>
+                                        <h3 class="text-xl font-bold text-slate-950">Tidak ada data transaksi</h3>
+                                        <p class="max-w-lg text-sm leading-6 text-slate-500">Ubah rentang tanggal atau tambahkan transaksi baru untuk melihat laporan pendapatan.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </x-layout>

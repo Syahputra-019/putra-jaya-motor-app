@@ -10,6 +10,7 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'pelanggan_id',
         'mekanik_id',
         'plat_nomor',
@@ -21,6 +22,8 @@ class Booking extends Model
         'biaya_sparepart',
         'total_biaya',
         'status_pembayaran',
+        'catatan_mekanik',
+        'sparepart_terpakai',
     ];
 
     // RELASI : booking ini milik pelanggan siapa?

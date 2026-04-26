@@ -4,98 +4,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Putra Jaya Motor - Sistem Booking</title>
+    <title>Putra Jaya Motor</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="bg-slate-50 font-sans antialiased">
-    <div class="flex h-screen overflow-hidden">
+@php
+    $user = Auth::user();
+    $navigation = [];
 
-        <aside class="z-20 flex w-64 flex-col bg-blue-900 text-white shadow-xl">
-            <div
-                class="flex h-16 items-center justify-center border-b border-slate-700 text-xl font-bold tracking-wider">
-                <span class="mr-2 text-blue-500">🔧</span> PJM Bengkel
+    if ($user?->role === 'admin') {
+        $navigation['Admin'] = [
+            ['label' => 'Dashboard', 'route' => 'dashboard', 'patterns' => ['dashboard*']],
+            ['label' => 'Data Mekanik', 'route' => 'mekanik.index', 'patterns' => ['mekanik.index', 'mekanik.create', 'mekanik.edit']],
+            ['label' => 'Data Sparepart', 'route' => 'sparepart.index', 'patterns' => ['sparepart.*']],
+            ['label' => 'Data Pelanggan', 'route' => 'pelanggan.index', 'patterns' => ['pelanggan.*']],
+            ['label' => 'Jasa Servis', 'route' => 'service.index', 'patterns' => ['service.*']],
+            ['label' => 'Kasir & Transaksi', 'route' => 'transaksi.index', 'patterns' => ['transaksi.*']],
+            ['label' => 'Laporan', 'route' => 'laporan.index', 'patterns' => ['laporan.*']],
+        ];
+    }
+
+    if ($user && in_array($user->role, ['admin', 'pelanggan'])) {
+        $navigation['Booking'] = [
+            ['label' => 'Antrean Booking', 'route' => 'booking.index', 'patterns' => ['booking.*']],
+        ];
+    }
+
+    if ($user && in_array($user->role, ['admin', 'mekanik'])) {
+        $navigation['Servis'] = [
+            ['label' => 'Jadwal Servis', 'route' => 'mekanik.jadwal', 'patterns' => ['mekanik.jadwal*']],
+        ];
+    }
+@endphp
+
+<body class="app-body">
+    <div x-data="{ sidebarOpen: false }" class="relative min-h-screen">
+        <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/55 lg:hidden"
+            @click="sidebarOpen = false"></div>
+
+        <aside class="app-sidebar mobile-sidebar lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:w-80 lg:translate-x-0"
+            :class="{ 'open': sidebarOpen }">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-mark">PJM</div>
+                <div class="sidebar-brand-copy">
+                    <span>Putra Jaya</span>
+                    <span>Sistem Operasional Bengkel</span>
+                </div>
             </div>
 
-            <nav class="flex-1 space-y-2 overflow-y-auto px-4 py-6">
+            <nav class="app-nav">
+                @foreach ($navigation as $section => $items)
+                    <div class="nav-section-label">{{ $section }}</div>
 
-                @if (Auth::check() && Auth::user()->role === 'admin')
-                    <a href="{{ route('dashboard') }}"
-                        class="block rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition hover:bg-blue-700">Dashboard
-                        Admin</a>
+                    @foreach ($items as $item)
+                        @php
+                            $isActive = collect($item['patterns'])->contains(fn($pattern) => request()->routeIs($pattern));
+                        @endphp
+                        <a href="{{ route($item['route']) }}"
+                            class="app-nav-link {{ $isActive ? 'is-active' : '' }}">
+                            <span class="app-nav-dot"></span>
+                            <span>{{ $item['label'] }}</span>
+                        </a>
+                    @endforeach
+                @endforeach
 
-                    <a href="{{ route('mekanik.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Data
-                        Mekanik</a>
-                    <a href="{{ route('sparepart.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Data
-                        Sparepart</a>
-                    <a href="{{ route('pelanggan.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Data
-                        Pelanggan</a>
-                    <a href="{{ route('service.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Data
-                        Jasa Servis</a>
-                    <a href="{{ route('transaksi.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Kasir
-                        & Transaksi</a>
-                    <a href="{{ route('laporan.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Laporan
-                        Pendapatan</a>
-                @endif
-
-                @if (Auth::check() && Auth::user()->role === 'pelanggan')
-                @endif
-
-                @if (Auth::check() && (Auth::user()->role === 'pelanggan' || Auth::user()->role === 'admin'))
-                    <a href="{{ route('booking.index') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Booking
-                        Antrean</a>
-                @endif
-
-                @if (Auth::check() && (Auth::user()->role === 'mekanik' || Auth::user()->role === 'admin'))
-                    <a href="{{ route('mekanik.jadwal') }}"
-                        class="block rounded-lg px-4 py-3 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Jadwal
-                        Servis</a>
-                @endif
-
-                <hr class="my-4 border-slate-700">
-
+                <div class="nav-section-label">Sesi</div>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
-                    <button type="submit"
-                        class="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left font-bold text-red-400 transition hover:bg-red-600 hover:text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" class="h-5 w-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                        </svg>
-                        Logout
+                    <button type="submit" class="app-nav-link w-full text-left text-rose-200 hover:text-white">
+                        <span class="app-nav-dot bg-rose-300 shadow-none"></span>
+                        <span>Logout</span>
                     </button>
                 </form>
-
             </nav>
         </aside>
 
-        <div class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        <div class="app-shell">
+            <header class="app-topbar">
+                <div class="topbar-inner">
+                    <div class="topbar-meta">
+                        <button type="button"
+                            class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm lg:hidden"
+                            @click="sidebarOpen = true">
+                            <span class="text-lg font-black">=</span>
+                        </button>
 
-            <header class="z-10 flex h-16 items-center justify-end bg-white px-6 shadow-sm">
-                <div class="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-slate-50">
-                    <span class="text-sm font-semibold text-slate-700">Halo, {{ Auth::user()->name ?? 'Guest' }}</span>
-                    <div
-                        class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-bold uppercase text-white shadow-md">
-                        {{ substr(Auth::user()->name ?? 'G', 0, 1) }}
+                        <div>
+                            <div class="topbar-chip">Blue and Gold Workspace</div>
+                            <div class="topbar-title">Putra Jaya Motor</div>
+                            <div class="topbar-subtitle">Panel kerja yang rapi, konsisten, dan nyaman dipakai harian.</div>
+                        </div>
+                    </div>
+
+                    <div class="user-panel">
+                        <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'G', 0, 1)) }}</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-900">{{ $user->name ?? 'Guest' }}</div>
+                            <div class="user-role">{{ $user->role ?? 'guest' }}</div>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main class="p-6">
+            <main class="app-main">
                 {{ $slot }}
             </main>
-
         </div>
     </div>
 </body>

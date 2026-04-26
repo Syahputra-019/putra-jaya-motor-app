@@ -138,6 +138,12 @@ public function jadwalKerja()
 
 public function updateStatus(Request $request, Booking $booking)
     {
+        $mekanik = Mekanik::where('user_id', auth()->id())->first();
+
+        if (auth()->user()->role === 'mekanik' && (!$mekanik || $booking->mekanik_id !== $mekanik->id)) {
+            abort(403);
+        }
+
         // Validasi khusus mekanik (cuma boleh update status dan laporan)
         $request->validate([
             'status' => 'required|in:diproses,selesai',

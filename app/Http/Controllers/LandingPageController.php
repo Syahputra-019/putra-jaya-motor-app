@@ -6,23 +6,20 @@ use App\Models\Booking;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class LandingPageController extends Controller
 {
-    public function index() {
+    public function index()
+    {
+        $booking = null;
 
-$booking = null;
-
-        // 1. CEK DULU: Apakah ada user yang login DAN apakah rolenya 'pelanggan'?
         if (auth()->check() && auth()->user()->role === 'pelanggan') {
-            
-            // 2. Kalau ada yang login, baru boleh ambil ID-nya
-            $pelanggan = \App\Models\Pelanggan::where('user_id', auth()->user()->id)->first();
+            $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
 
-            // 3. Kalau data pelanggannya ketemu di database, cari booking-nya
             if ($pelanggan) {
-                $booking = \App\Models\Booking::where('pelanggan_id', $pelanggan->id)
-                    ->latest() // Ambil yang paling baru
+                $booking = Booking::where('user_id', auth()->id())
+                    ->latest()
                     ->first();
             }
         }
@@ -30,7 +27,8 @@ $booking = null;
         return view('landing', compact('booking'));
     }
 
-    public function storeBooking(Request $request) {
+    public function storeBooking(Request $request)
+    {
         $request->validate([
             'nama' => 'required|string|max:255',
             'no_telp' => 'required|string|max:15',
@@ -40,23 +38,40 @@ $booking = null;
             'jadwal_booking' => 'required|date|after_or_equal:today',
         ]);
 
-        // CEK PELANGGAN: Kalau nomor HP sudah ada, pakai yang lama. Kalau belum, buat baru.
-        $pelanggan = Pelanggan::firstOrCreate(
-            ['no_telp' => $request->no_telp],
-            ['nama_pelanggan' => $request->nama] // Sesuaikan nama kolom di tabel pelanggan lu
-        );
+        if (Auth::check()) {
+            $pelanggan = Pelanggan::firstOrCreate(
+                ['user_id' => Auth::id()],
+                [
+                    'nama_pelanggan' => $request->nama,
+                    'no_telp' => $request->no_telp,
+                ]
+            );
 
-        // SIMPAN BOOKING
+            $pelanggan->update([
+                'nama_pelanggan' => $request->nama,
+                'no_telp' => $request->no_telp,
+            ]);
+        } else {
+            $pelanggan = Pelanggan::firstOrCreate(
+                ['no_telp' => $request->no_telp],
+                [
+                    'nama_pelanggan' => $request->nama,
+                    'user_id' => null,
+                ]
+            );
+        }
+
         $booking = Booking::create([
+            'user_id' => Auth::id(),
             'pelanggan_id' => $pelanggan->id,
             'plat_nomor' => $request->plat_nomor,
             'tipe_motor' => $request->tipe_motor,
             'keluhan' => $request->keluhan,
             'jadwal_booking' => $request->jadwal_booking,
-            'status' => 'menunggu', // Status default
+            'status' => 'menunggu',
+            'status_pembayaran' => 'belum lunas',
         ]);
 
-        // KIRIM WA OTOMATIS (Fonnte)
         $this->sendWhatsApp($pelanggan, $booking);
 
         return redirect()->back()->with('success', 'Booking berhasil! Tiket antrean sudah dikirim ke WhatsApp kamu.');

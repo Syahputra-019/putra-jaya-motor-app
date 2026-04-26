@@ -1,128 +1,118 @@
 <x-layout>
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Transaksi Servis Baru</h2>
-        <p class="text-sm text-gray-500">Catat layanan servis dan suku cadang yang digunakan.</p>
-    </div>
+    <div class="page-shell">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Cashier Desk</p>
+                <h1 class="page-title">Buat transaksi servis</h1>
+                <p class="page-description">Catat jasa, sparepart, dan data pelanggan dalam satu form yang lebih bersih dan konsisten.</p>
+            </div>
+        </div>
 
-    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div class="p-6">
-            @if ($errors->any())
-                <div class="mb-6 rounded-lg border border-red-400 bg-red-100 p-4 text-red-700">
-                    <strong class="font-bold">Gagal Menyimpan Data!</strong>
-                    <ul class="mt-2 list-inside list-disc">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>
+                    <div class="font-bold">Transaksi belum bisa disimpan</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            <form action="{{ route('transaksi.store') }}" method="POST" x-data="{
-                barisSparepart: [{ id: Date.now() }]
-            }">
+        <div class="surface-card">
+            <form action="{{ route('transaksi.store') }}" method="POST" x-data="{ barisSparepart: [{ id: Date.now() }] }" class="form-shell">
                 @csrf
 
                 @if (isset($booking))
-                    <div class="mb-4 rounded-r border-l-4 border-blue-500 bg-blue-50 p-4 shadow-sm">
-                        <h3 class="text-sm font-bold uppercase text-blue-800">Laporan dari Mekanik</h3>
-                        <p class="mt-1 text-sm text-blue-900"><strong>Pelanggan:</strong>
-                            {{ $booking->pelanggan->nama_pelanggan }}</p>
-                        <p class="text-sm text-blue-900"><strong>Motor:</strong> {{ $booking->tipe_motor }}
-                            ({{ $booking->plat_nomor }})</p>
-                        <p class="mt-2 text-sm text-blue-900"><strong>🛠️ Sparepart Diganti:</strong>
-                            {{ $booking->sparepart_terpakai }}</p>
-                        <p class="text-sm text-blue-900"><strong>📝 Catatan:</strong> {{ $booking->catatan_mekanik }}
-                        </p>
-
-                        <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                    <div class="alert alert-warning">
+                        <div class="font-black">BK</div>
+                        <div>
+                            <div class="font-bold">Booking referensi terhubung</div>
+                            <div class="mt-1 text-sm leading-6">
+                                Pelanggan: {{ $booking->pelanggan->nama_pelanggan }}<br>
+                                Motor: {{ $booking->tipe_motor }} ({{ $booking->plat_nomor }})<br>
+                                Sparepart: {{ $booking->sparepart_terpakai }}<br>
+                                Catatan: {{ $booking->catatan_mekanik }}
+                            </div>
+                            <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                        </div>
                     </div>
                 @endif
 
-                <div class="mb-6 grid grid-cols-1 gap-6 border-b border-gray-200 pb-6 md:grid-cols-2">
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-gray-700">Kode Transaksi</label>
-                        <input type="text" name="kode_transaksi" value="{{ $kode_transaksi }}" readonly
-                            class="w-full rounded border bg-gray-100 px-3 py-2 text-gray-700 outline-none">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="kode_transaksi">Kode transaksi</label>
+                        <input id="kode_transaksi" type="text" name="kode_transaksi" value="{{ $kode_transaksi }}" class="form-input" readonly>
                     </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-gray-700">Tanggal Servis</label>
-                        <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required
-                            class="w-full rounded border px-3 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <div class="form-field">
+                        <label class="field-label" for="tanggal">Tanggal servis</label>
+                        <input id="tanggal" type="date" name="tanggal" value="{{ date('Y-m-d') }}" class="form-input" required>
                     </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-gray-700">Pilih Pelanggan</label>
-                        <select name="pelanggan_id" required
-                            class="w-full rounded border px-3 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="">-- Pilih Pelanggan --</option>
+                    <div class="form-field">
+                        <label class="field-label" for="pelanggan_id">Pilih pelanggan</label>
+                        <select id="pelanggan_id" name="pelanggan_id" class="form-select" required>
+                            <option value="">-- Pilih pelanggan --</option>
                             @foreach ($pelanggans as $p)
-                                <option value="{{ $p->id }}">{{ $p->nama_pelanggan }} ({{ $p->no_telp }})
-                                </option>
+                                <option value="{{ $p->id }}">{{ $p->nama_pelanggan }} ({{ $p->no_telp }})</option>
                             @endforeach
                         </select>
                     </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-bold text-gray-700">Pilih Mekanik</label>
-                        <select name="mekanik_id" required
-                            class="w-full rounded border px-3 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="">-- Pilih Mekanik --</option>
+                    <div class="form-field">
+                        <label class="field-label" for="mekanik_id">Pilih mekanik</label>
+                        <select id="mekanik_id" name="mekanik_id" class="form-select" required>
+                            <option value="">-- Pilih mekanik --</option>
                             @foreach ($mekaniks as $m)
                                 <option value="{{ $m->id }}">{{ $m->nama_mekanik }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-4">
-                        <label class="mb-1 block font-semibold">Jenis Jasa Servis <span
-                                class="text-red-500">*</span></label>
-                        <select name="service_id" class="w-full rounded border p-2 focus:ring-2 focus:ring-blue-500"
-                            required>
-                            <option value="">-- Pilih Jasa Servis --</option>
+                    <div class="form-field form-field-full">
+                        <label class="field-label" for="service_id">Jenis jasa servis</label>
+                        <select id="service_id" name="service_id" class="form-select" required>
+                            <option value="">-- Pilih jasa servis --</option>
                             @foreach ($services as $s)
-                                <option value="{{ $s->id }}">{{ $s->nama_service }} - Rp
-                                    {{ number_format($s->harga, 0, ',', '.') }}</option>
+                                <option value="{{ $s->id }}">{{ $s->nama_service }} - Rp {{ number_format($s->harga, 0, ',', '.') }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-bold text-gray-700">Keluhan Kendaraan</label>
-                        <textarea name="keluhan" rows="2"
-                            class="w-full rounded border px-3 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            placeholder="Contoh: Mesin brebet, ganti oli rutin..."></textarea>
+                    <div class="form-field form-field-full">
+                        <label class="field-label" for="keluhan">Keluhan kendaraan</label>
+                        <textarea id="keluhan" name="keluhan" class="form-textarea" placeholder="Contoh: mesin brebet, ganti oli rutin">{{ old('keluhan') }}</textarea>
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-gray-800">Keranjang Sparepart</h3>
-                        <button type="button" @click="barisSparepart.push({ id: Date.now() })"
-                            class="rounded bg-indigo-600 px-3 py-1.5 text-sm font-bold text-white transition hover:bg-indigo-700">
-                            + Tambah Sparepart
+                <div class="surface-card-soft">
+                    <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h2 class="section-title">Keranjang sparepart</h2>
+                            <p class="section-subtitle">Tambahkan sparepart yang dipakai selama proses servis.</p>
+                        </div>
+                        <button type="button" @click="barisSparepart.push({ id: Date.now() + Math.random() })" class="btn-secondary">
+                            Tambah Baris
                         </button>
                     </div>
 
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="mt-5 space-y-4">
                         <template x-for="(baris, index) in barisSparepart" :key="baris.id">
-                            <div class="mb-3 flex items-end gap-4">
-                                <div class="flex-1">
-                                    <label class="mb-1 block text-xs font-bold text-gray-600">Pilih Sparepart</label>
-                                    <select name="sparepart_id[]"
-                                        class="w-full rounded border px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <div class="grid grid-cols-1 gap-4 rounded-[24px] border border-slate-100 bg-white p-4 md:grid-cols-[1fr_120px_auto]">
+                                <div class="form-field">
+                                    <label class="field-label">Pilih sparepart</label>
+                                    <select name="sparepart_id[]" class="form-select">
                                         <option value="">-- Pilih --</option>
                                         @foreach ($spareparts as $s)
-                                            <option value="{{ $s->id }}">{{ $s->nama_sparepart }} - Rp
-                                                {{ number_format($s->harga, 0, ',', '.') }} (Stok:
-                                                {{ $s->stok }})</option>
+                                            <option value="{{ $s->id }}">{{ $s->nama_sparepart }} - Rp {{ number_format($s->harga, 0, ',', '.') }} (Stok: {{ $s->stok }})</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="w-24">
-                                    <label class="mb-1 block text-xs font-bold text-gray-600">Qty</label>
-                                    <input type="number" name="jumlah[]" min="1" value="1"
-                                        class="w-full rounded border px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <div class="form-field">
+                                    <label class="field-label">Qty</label>
+                                    <input type="number" name="jumlah[]" min="1" value="1" class="form-input">
                                 </div>
-                                <div>
-                                    <button type="button" @click="barisSparepart.splice(index, 1)"
-                                        x-show="barisSparepart.length > 1"
-                                        class="rounded bg-red-100 p-2 text-red-600 transition hover:bg-red-200">
+                                <div class="flex items-end">
+                                    <button type="button" @click="barisSparepart.splice(index, 1)" x-show="barisSparepart.length > 1" class="btn-danger w-full md:w-auto">
                                         Hapus
                                     </button>
                                 </div>
@@ -131,15 +121,9 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-3 border-t border-gray-200 pt-6">
-                    <a href="{{ route('transaksi.index') }}"
-                        class="rounded bg-gray-500 px-6 py-2 font-bold text-white transition hover:bg-gray-600">
-                        Batal
-                    </a>
-                    <button type="submit"
-                        class="rounded bg-blue-600 px-6 py-2 font-bold text-white shadow-md transition hover:bg-blue-700">
-                        Simpan & Proses Transaksi
-                    </button>
+                <div class="form-actions">
+                    <a href="{{ route('transaksi.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-primary">Simpan dan Proses</button>
                 </div>
             </form>
         </div>

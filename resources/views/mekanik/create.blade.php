@@ -1,60 +1,59 @@
 <x-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Tambah Data Mekanik') }}
-        </h2>
-    </x-slot>
+    <div class="page-shell-sm">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Workshop Team</p>
+                <h1 class="page-title">Tambah mekanik</h1>
+                <p class="page-description">Masukkan profil mekanik baru dengan tampilan form yang konsisten di seluruh sistem.</p>
+            </div>
+        </div>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    
-                    <form action="{{ route('mekanik.store') }}" method="POST">
-                        @csrf
-                        
-                        <div class="mb-4">
-                            <label for="nama_mekanik" class="block text-gray-700 text-sm font-bold mb-2">Nama Mekanik</label>
-                            <input type="text" name="nama_mekanik" id="nama_mekanik" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 @error('nama_mekanik') border-red-500 @enderror" value="{{ old('nama_mekanik') }}" placeholder="Masukkan nama mekanik..." required>
-                            @error('nama_mekanik')
-                                <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="no_telp" class="block text-gray-700 text-sm font-bold mb-2">No. telp / WhatsApp</label>
-                            <input type="text" name="no_telp" id="no_telp" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 @error('no_telp') border-red-500 @enderror" value="{{ old('no_telp') }}" placeholder="Contoh: 081234567890" required>
-                            @error('no_telp')
-                                <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="mb-6">
-                            <label for="spesialisasi" class="block text-gray-700 text-sm font-bold mb-2">Spesialisasi</label>
-                            <select name="spesialisasi" id="spesialisasi" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 @error('spesialisasi') border-red-500 @enderror" required>
-                                <option value="" disabled selected>-- Pilih Spesialisasi --</option>
-                                <option value="Servis Rutin" {{ old('spesialisasi') == 'Servis Rutin' ? 'selected' : '' }}>Servis Rutin</option>
-                                <option value="Mesin" {{ old('spesialisasi') == 'Mesin' ? 'selected' : '' }}>Turun Mesin</option>
-                                <option value="Kelistrikan" {{ old('spesialisasi') == 'Kelistrikan' ? 'selected' : '' }}>Kelistrikan</option>
-                                <option value="Modifikasi" {{ old('spesialisasi') == 'Modifikasi' ? 'selected' : '' }}>Modifikasi</option>
-                            </select>
-                            @error('spesialisasi')
-                                <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="flex items-center justify-end space-x-3">
-                            <a href="{{ route('mekanik.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
-                                Batal
-                            </a>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
-                                Simpan Data
-                            </button>
-                        </div>
-                    </form>
-
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>
+                    <div class="font-bold">Data belum lengkap</div>
+                    <ul class="mt-2 list-disc pl-5 text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
+        @endif
+
+        <div class="surface-card">
+            <form action="{{ route('mekanik.store') }}" method="POST" class="form-shell">
+                @csrf
+
+                <div class="form-field">
+                    <label class="field-label" for="nama_mekanik">Nama mekanik</label>
+                    <input id="nama_mekanik" type="text" name="nama_mekanik" value="{{ old('nama_mekanik') }}"
+                        class="form-input" placeholder="Masukkan nama mekanik" required>
+                </div>
+
+                <div class="form-field">
+                    <label class="field-label" for="no_telp">No. telepon / WhatsApp</label>
+                    <input id="no_telp" type="text" name="no_telp" value="{{ old('no_telp') }}" class="form-input"
+                        placeholder="Contoh: 081234567890" required>
+                </div>
+
+                <div class="form-field">
+                    <label class="field-label" for="spesialisasi">Spesialisasi</label>
+                    <select id="spesialisasi" name="spesialisasi" class="form-select" required>
+                        <option value="">-- Pilih spesialisasi --</option>
+                        <option value="Servis Rutin" {{ old('spesialisasi') == 'Servis Rutin' ? 'selected' : '' }}>Servis Rutin</option>
+                        <option value="Mesin" {{ old('spesialisasi') == 'Mesin' ? 'selected' : '' }}>Turun Mesin</option>
+                        <option value="Kelistrikan" {{ old('spesialisasi') == 'Kelistrikan' ? 'selected' : '' }}>Kelistrikan</option>
+                        <option value="Modifikasi" {{ old('spesialisasi') == 'Modifikasi' ? 'selected' : '' }}>Modifikasi</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ route('mekanik.index') }}" class="btn-secondary">Batal</a>
+                    <button type="submit" class="btn-primary">Simpan Data</button>
+                </div>
+            </form>
         </div>
     </div>
 </x-layout>

@@ -10,48 +10,37 @@ use App\Models\Service;
 use App\Models\Sparepart;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class TransaksiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        // ambil data transaksi beserta nama pelanggan dan mekanikknya
         $transaksis = Transaksi::with(['pelanggan', 'mekanik'])->latest()->paginate(10);
         return view('transaksi.index', compact('transaksis'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Request $request)
     {
-        // lempar data master ke view buat dropduwn form
         $pelanggans = Pelanggan::all();
         $mekaniks = Mekanik::all();
         $spareparts = Sparepart::where('stok', '>', 0)->get();
         $services = Service::all();
 
         $booking = null;
-    if ($request->has('booking_id')) {
-        $booking = Booking::find($request->booking_id);
-    }
+        if ($request->has('booking_id')) {
+            $booking = Booking::find($request->booking_id);
+        }
 
-        // bikin kode transaksi otomatis
         $kode_transaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(4));
-    
+
         return view('transaksi.create', compact('pelanggans', 'mekaniks', 'spareparts', 'kode_transaksi', 'services', 'booking'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // validasi input
         $request->validate([
             'kode_transaksi' => 'required|unique:transaksis',
             'tanggal' => 'required|date',
@@ -60,89 +49,92 @@ class TransaksiController extends Controller
             'service_id' => 'required|exists:services,id',
             'keluhan' => 'nullable|string',
             'sparepart_id' => 'nullable|array',
+            'sparepart_id.*' => 'nullable|exists:spareparts,id',
             'jumlah' => 'nullable|array',
-            'booking_id' => 'nullable'
+            'jumlah.*' => 'nullable|integer|min:1',
+            'booking_id' => 'nullable|exists:bookings,id',
         ]);
-
-        // ambil data jasa servis
-        $jasa = Service::findOrFail($request->service_id);
-
-        // modal awal total biaya diambil dari harga jasa servis
-        $total_biaya = $jasa->harga;
-
-        //  simpan data transaksi induk dlu
-        $transaksi = Transaksi::create([
-            'kode_transaksi' => $request->kode_transaksi,
-            'tanggal' => $request->tanggal,
-            'pelanggan_id' => $request->pelanggan_id,
-            'mekanik_id' => $request->mekanik_id,
-            'service_id' => $request->service_id,
-            'keluhan' => $request->keluhan,
-            'status' => 'Selesai',
-            'total_biaya' => $total_biaya,
-        ]);
-
-        // simpan detail transaksi
 
         if ($request->has('sparepart_id')) {
             foreach ($request->sparepart_id as $key => $sparepart_id) {
-                // Cek kalau ID sparepart ada dan jumlahnya lebih dari 0
-                if ($sparepart_id && $request->jumlah[$key] > 0) {
-                    $sparepart = Sparepart::find($sparepart_id);
-                    $subtotal = $sparepart->harga * $request->jumlah[$key];
+                $qty = (int) ($request->jumlah[$key] ?? 0);
 
-                    DetailTransaksi::create([
-                        'transaksi_id'   => $transaksi->id,
-                        'sparepart_id'   => $sparepart_id,
-                        'jumlah'         => $request->jumlah[$key],
-                        'harga_satuan'   => $sparepart->harga,
-                        'sub_total'       => $subtotal,
-                    ]);
+                if ($sparepart_id && $qty > 0) {
+                    $sparepart = Sparepart::findOrFail($sparepart_id);
 
-                    $total_biaya += $subtotal;
+                    if ($sparepart->stok < $qty) {
+                        return back()->withInput()->with('error', 'Stok tidak cukup');
+                    }
                 }
             }
         }
 
-        // Update total biaya transaksi
-        $transaksi->update(['total_biaya' => $total_biaya]);
+        $transaksi = DB::transaction(function () use ($request) {
+            $jasa = Service::findOrFail($request->service_id);
+            $total_biaya = $jasa->harga;
 
-        if ($request->has('booking_id') && $request->booking_id != null) {
-        \App\Models\Booking::where('id', $request->booking_id)->update([
-            'status_pembayaran' => 'lunas' // atau sesuaikan dengan nama kolom status lu
-        ]);
-    }
+            $transaksi = Transaksi::create([
+                'booking_id' => $request->booking_id,
+                'kode_transaksi' => $request->kode_transaksi,
+                'tanggal' => $request->tanggal,
+                'pelanggan_id' => $request->pelanggan_id,
+                'mekanik_id' => $request->mekanik_id,
+                'service_id' => $request->service_id,
+                'keluhan' => $request->keluhan,
+                'status' => 'selesai',
+                'total_biaya' => $total_biaya,
+            ]);
+
+            if ($request->has('sparepart_id')) {
+                foreach ($request->sparepart_id as $key => $sparepart_id) {
+                    $qty = (int) ($request->jumlah[$key] ?? 0);
+
+                    if ($sparepart_id && $qty > 0) {
+                        $sparepart = Sparepart::findOrFail($sparepart_id);
+                        $subtotal = $sparepart->harga * $qty;
+
+                        DetailTransaksi::create([
+                            'transaksi_id' => $transaksi->id,
+                            'sparepart_id' => $sparepart_id,
+                            'jumlah' => $qty,
+                            'harga_satuan' => $sparepart->harga,
+                            'sub_total' => $subtotal,
+                        ]);
+
+                        $total_biaya += $subtotal;
+                    }
+                }
+            }
+
+            $transaksi->update(['total_biaya' => $total_biaya]);
+
+            if ($transaksi->booking_id) {
+                Booking::whereKey($transaksi->booking_id)->update([
+                    'status_pembayaran' => 'belum lunas',
+                ]);
+            }
+
+            return $transaksi;
+        });
 
         return redirect()->route('transaksi.bayar', $transaksi->id)->with('success', 'Transaksi berhasil dicatat! Silakan selesaikan pembayaran.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Transaksi $transaksi)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Transaksi $transaksi)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Transaksi $transaksi)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Transaksi $transaksi)
     {
         $transaksi->delete();
@@ -155,54 +147,48 @@ class TransaksiController extends Controller
         return view('transaksi.cetak', compact('transaksi'));
     }
 
+    public function notaPublik($id)
+    {
+        $transaksi = Transaksi::with(['pelanggan', 'mekanik', 'detailTransaksis.sparepart', 'service'])->findOrFail($id);
+        return view('transaksi.cetak', compact('transaksi'));
+    }
+
     public function bayar($id)
     {
-        // Cari data transaksi berdasarkan ID
         $transaksi = Transaksi::with('pelanggan')->findOrFail($id);
 
-        // Cek kalau statusnya masih belum bayar dan tokennya belum ada
         if ($transaksi->status_pembayaran === 'belum_bayar' && empty($transaksi->snap_token)) {
-            
-            // 1. Set Konfigurasi Midtrans dari file .env
             \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
             \Midtrans\Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
             \Midtrans\Config::$isSanitized = true;
             \Midtrans\Config::$is3ds = true;
 
-            // 2. Siapin data yang mau dikirim ke Midtrans
             $params = [
                 'transaction_details' => [
-                    'order_id' => $transaksi->kode_transaksi . '-' . time(), 
+                    'order_id' => $transaksi->kode_transaksi . '-' . time(),
                     'gross_amount' => $transaksi->total_biaya,
                 ],
                 'customer_details' => [
                     'first_name' => $transaksi->pelanggan->nama_pelanggan ?? 'Pelanggan Umum',
-                ]
+                ],
             ];
 
-            // 3. Minta Snap Token ke Midtrans
             $snapToken = \Midtrans\Snap::getSnapToken($params);
-            
-            // 4. Simpan token ke database biar bisa dipanggil di tampilan HTML
             $transaksi->snap_token = $snapToken;
             $transaksi->save();
         }
 
-        // Lempar data ke halaman view pembayaran
         return view('transaksi.bayar', compact('transaksi'));
     }
 
     public function uploadStruk(Request $request, $id)
     {
-
-        // Validasi input
         $request->validate([
             'bukti_struk' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $transaksi = Transaksi::findOrFail($id);
 
-        // Simpan file struk ke storage
         if ($request->hasFile('bukti_struk')) {
             $file = $request->file('bukti_struk');
             $nama_file = time() . '_' . $file->getClientOriginalName();
@@ -210,6 +196,8 @@ class TransaksiController extends Controller
             $transaksi->status_pembayaran = 'menunggu_konfirmasi';
             $transaksi->bukti_struk = $nama_file;
             $transaksi->save();
+
+            $this->updateBookingPaymentStatus($transaksi, 'menunggu_konfirmasi');
 
             return redirect()->route('transaksi.cetak', $id)->with('success', 'Bukti transfer berhasil dikirim! Menunggu konfirmasi admin.');
         }
@@ -219,109 +207,61 @@ class TransaksiController extends Controller
 
     public function callback(Request $request)
     {
-        // 1. Ambil Server Key buat cocokin keamanan
         $serverKey = env('MIDTRANS_SERVER_KEY');
-        
-        // 2. Rumus validasi resmi dari Midtrans biar nggak ada hacker yang nipu
-        $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
-        
-        // 3. Kalau signature-nya beneran cocok (asli dari Midtrans)
+        $hashed = hash('sha512', $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+
         if ($hashed == $request->signature_key) {
-            
-            // Ambil kode transaksi asli 
-            $order_id = $request->order_id;
-            $kode_transaksi = substr($order_id, 0, strrpos($order_id, '-'));
-            
-            // 🔥 PERBAIKAN: Load 'pelanggan' di sini biar no_telp-nya kebaca pas mau kirim WA
-            $transaksi = Transaksi::with(['detailTransaksis.sparepart', 'pelanggan'])->where('kode_transaksi', $kode_transaksi)->first();
-            
-            // 4. Update status berdasarkan laporan Midtrans
+            $orderId = $request->order_id;
+            $kodeTransaksi = substr($orderId, 0, strrpos($orderId, '-'));
+            $transaksi = Transaksi::where('kode_transaksi', $kodeTransaksi)->first();
+
+            if (!$transaksi) {
+                return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
+            }
+
             if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
-                
-                // Kalau status sebelumnya bukan lunas, potong stok dan kirim WA!
-                if ($transaksi->status_pembayaran != 'lunas') {
-                    
-                    foreach ($transaksi->detailTransaksis as $detail) {
-                        $sparepart = $detail->sparepart;
-                        if ($sparepart) {
-                            $sparepart->stok -= $detail->jumlah;
-                            $sparepart->save();
-                                if ($sparepart->stok <= 5) {
-                                $this->kirimNotifStokWA($sparepart);
-                            }
-                        }
-                    }
-                    
-                    // Ubah dan simpan status lunas
-                    $transaksi->status_pembayaran = 'lunas';
-                    $transaksi->save(); 
-
-                    // 🔥 EKSEKUSI KIRIM WA OTOMATIS DARI MIDTRANS DI SINI! 🔥
-                    $this->kirimNotaWhatsApp($transaksi);
-                }
-
+                $this->settleTransaksi($transaksi->id);
             } elseif ($request->transaction_status == 'cancel' || $request->transaction_status == 'deny' || $request->transaction_status == 'expire') {
-                $transaksi->status_pembayaran = 'belum_bayar'; 
+                $transaksi->status_pembayaran = 'belum_bayar';
                 $transaksi->save();
+                $this->updateBookingPaymentStatus($transaksi, 'belum lunas');
             }
         }
-        
-        // 5. Kasih jempol (Response 200) ke Midtrans
+
         return response()->json(['message' => 'Callback diterima bro']);
     }
 
     public function konfirmasiPembayaran($id)
     {
-        $transaksi = Transaksi::with('detailTransaksis.sparepart')->findOrFail($id);
-        
-        // Pastiin cuma diproses kalau belum lunas (biar stok gak kepotong dobel)
-        if ($transaksi->status_pembayaran != 'lunas') {
-            
-            // Looping buat motong stok tiap sparepart yang dibeli
-            foreach ($transaksi->detailTransaksis as $detail) {
-                $sparepart = $detail->sparepart;
-                if ($sparepart) {
-                    $sparepart->stok -= $detail->jumlah; // Kurangi stok
-                    $sparepart->save();
-                            if ($sparepart->stok <= 5) {
-                        $this->kirimNotifStokWA($sparepart);
-                    }
-                }
-            }
-
-            // Ubah status jadi lunas
-            $transaksi->status_pembayaran = 'lunas';
-            $transaksi->save();
-
-            $this->kirimNotaWhatsApp($transaksi);
-        }
+        $transaksi = Transaksi::findOrFail($id);
+        $this->settleTransaksi($transaksi->id);
 
         return redirect()->back()->with('success', 'Mantap! Pembayaran di-ACC, stok sparepart otomatis terpotong, dan nota telah dikirim via WhatsApp.');
     }
 
     private function kirimNotaWhatsApp($transaksi)
     {
-        // GANTI DI SINI: Pakai no_telp sesuai kolom di tabel pelanggan lu
-        $no_hp = $transaksi->pelanggan->no_telp ?? null; 
-        
-        if (!$no_hp) return false; 
+        $noHp = $transaksi->pelanggan->no_telp ?? null;
+        $token = env('FONNTE_TOKEN');
 
-        // Isi pesan WA
+        if (!$noHp || !$token) {
+            return false;
+        }
+
+        $notaUrl = URL::temporarySignedRoute('transaksi.nota', now()->addDays(7), ['id' => $transaksi->id]);
+
         $pesan = "Halo *" . ($transaksi->pelanggan->nama_pelanggan ?? 'Pelanggan') . "*,\n\n";
         $pesan .= "Terima kasih telah servis di *PUTRA JAYA MOTOR*.\n\n";
-        $pesan .= "📝 *Detail Transaksi:*\n";
+        $pesan .= "Detail transaksi:\n";
         $pesan .= "Kode: " . $transaksi->kode_transaksi . "\n";
-        $pesan .= "Total Tagihan: *Rp " . number_format($transaksi->total_biaya, 0, ',', '.') . "*\n";
-        $pesan .= "Status: ✅ *LUNAS*\n\n";
-        
-        $pesan .= "Cek e-Nota lengkap Anda di sini:\n";
-        $pesan .= route('transaksi.cetak', $transaksi->id) . "\n\n";
-        
-        $pesan .= "Semoga motornya awet dan tarikannya makin ngacir! 🏍️💨";
+        $pesan .= "Total Tagihan: Rp " . number_format($transaksi->total_biaya, 0, ',', '.') . "\n";
+        $pesan .= "Status: LUNAS\n\n";
+        $pesan .= "Cek e-nota Anda di sini:\n";
+        $pesan .= $notaUrl . "\n\n";
+        $pesan .= "Semoga motornya awet dan tarikannya makin ngacir!";
 
-        // Eksekusi kirim via Fonnte
         $curl = curl_init();
-        curl_setopt_array($curl, array(
+        curl_setopt_array($curl, [
             CURLOPT_URL => 'https://api.fonnte.com/send',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
@@ -330,15 +270,15 @@ class TransaksiController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => array(
-                'target' => $no_hp,
+            CURLOPT_POSTFIELDS => [
+                'target' => $noHp,
                 'message' => $pesan,
                 'countryCode' => '62',
-            ),
-            CURLOPT_HTTPHEADER => array(
-                'Authorization: dufDotss7Jzn81XtiiGV' // Tempel token Fonnte lu di sini
-            ),
-        ));
+            ],
+            CURLOPT_HTTPHEADER => [
+                "Authorization: $token",
+            ],
+        ]);
 
         $response = curl_exec($curl);
         curl_close($curl);
@@ -351,17 +291,16 @@ class TransaksiController extends Controller
         $target = env('ADMIN_PHONE');
         $token = env('FONNTE_TOKEN');
 
-        // Kalau nomor bos atau token gak disetting, batalin aja biar gak error
         if (!$target || !$token) return;
 
-        $pesan = "⚠️ *ALERT STOK BENGKEL PUTRA JAYA* ⚠️\n\n";
-        $pesan .= "Bos, stok barang ini udah mau abis nih! Buruan restock ya:\n\n";
-        $pesan .= "🔧 Nama Barang: *" . $sparepart->nama_sparepart . "*\n";
-        $pesan .= "📦 Sisa Stok: *" . $sparepart->stok . "*\n\n";
-        $pesan .= "_Pesan otomatis dari Sistem Aplikasi Bengkel_";
+        $pesan = "ALERT STOK BENGKEL PUTRA JAYA\n\n";
+        $pesan .= "Bos, stok barang ini sudah mau habis. Segera restock:\n\n";
+        $pesan .= "Nama Barang: " . $sparepart->nama_sparepart . "\n";
+        $pesan .= "Sisa Stok: " . $sparepart->stok . "\n\n";
+        $pesan .= "Pesan otomatis dari sistem aplikasi bengkel.";
 
         $curl = curl_init();
-        curl_setopt_array($curl, array(
+        curl_setopt_array($curl, [
             CURLOPT_URL => 'https://api.fonnte.com/send',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
@@ -370,17 +309,71 @@ class TransaksiController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => array(
+            CURLOPT_POSTFIELDS => [
                 'target' => $target,
                 'message' => $pesan,
                 'delay' => '1',
-            ),
-            CURLOPT_HTTPHEADER => array(
-                "Authorization: $token"
-            ),
-        ));
+            ],
+            CURLOPT_HTTPHEADER => [
+                "Authorization: $token",
+            ],
+        ]);
 
         curl_exec($curl);
         curl_close($curl);
+    }
+
+    private function settleTransaksi(int $transaksiId): void
+    {
+        $lowStockSpareparts = [];
+        $shouldSendNota = false;
+
+        $transaksi = DB::transaction(function () use ($transaksiId, &$lowStockSpareparts, &$shouldSendNota) {
+            $transaksi = Transaksi::with(['detailTransaksis', 'pelanggan', 'mekanik', 'service', 'booking'])
+                ->lockForUpdate()
+                ->findOrFail($transaksiId);
+
+            if ($transaksi->status_pembayaran === 'lunas') {
+                return $transaksi->load(['detailTransaksis.sparepart']);
+            }
+
+            foreach ($transaksi->detailTransaksis as $detail) {
+                $sparepart = Sparepart::lockForUpdate()->find($detail->sparepart_id);
+
+                if ($sparepart) {
+                    $sparepart->stok = max(0, $sparepart->stok - $detail->jumlah);
+                    $sparepart->save();
+
+                    if ($sparepart->stok <= 5) {
+                        $lowStockSpareparts[] = $sparepart->fresh();
+                    }
+                }
+            }
+
+            $transaksi->status_pembayaran = 'lunas';
+            $transaksi->save();
+
+            $this->updateBookingPaymentStatus($transaksi, 'lunas');
+            $shouldSendNota = true;
+
+            return $transaksi->load(['detailTransaksis.sparepart']);
+        });
+
+        foreach ($lowStockSpareparts as $sparepart) {
+            $this->kirimNotifStokWA($sparepart);
+        }
+
+        if ($shouldSendNota) {
+            $this->kirimNotaWhatsApp($transaksi);
+        }
+    }
+
+    private function updateBookingPaymentStatus(Transaksi $transaksi, string $status): void
+    {
+        if ($transaksi->booking_id) {
+            Booking::whereKey($transaksi->booking_id)->update([
+                'status_pembayaran' => $status,
+            ]);
+        }
     }
 }

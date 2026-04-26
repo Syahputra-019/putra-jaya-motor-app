@@ -1,84 +1,79 @@
 <x-layout>
-    <div class="max-w-5xl mx-auto py-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-800">Pilih Metode Pembayaran 💸</h1>
-            <p class="text-slate-500 mt-1">Selesaikan pembayaran untuk nota servis <b>{{ $transaksi->kode_transaksi }}</b></p>
-        </div>
-
-        <div class="bg-blue-50 rounded-xl border border-blue-100 p-6 mb-8 flex justify-between items-center">
-            <div>
-                <p class="text-sm text-blue-600 font-semibold mb-1">Total Tagihan:</p>
-                <h2 class="text-3xl font-black text-blue-800">Rp {{ number_format($transaksi->total_biaya, 0, ',', '.') }}</h2>
-                <p class="text-sm text-slate-600 mt-1">Pelanggan: {{ $transaksi->pelanggan->nama_pelanggan ?? 'Umum' }}</p>
-            </div>
-            <div class="hidden sm:block">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
+    <div class="page-shell-md">
+        <div class="page-header">
+            <div class="page-header-split">
+                <p class="page-kicker">Payment Gateway</p>
+                <h1 class="page-title">Pilih metode pembayaran</h1>
+                <p class="page-description">Selesaikan pembayaran untuk transaksi <span class="font-bold text-[color:var(--brand-navy-800)]">{{ $transaksi->kode_transaksi }}</span> dengan tampilan yang lebih fokus dan konsisten.</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center flex flex-col justify-between hover:border-blue-400 transition">
+        <div class="surface-card">
+            <div class="grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-3">
                 <div>
-                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">Bayar Otomatis</h3>
-                    <p class="text-slate-500 text-sm mb-6">Bayar praktis pakai QRIS, M-Banking, GoPay, atau ShopeePay. Konfirmasi langsung detik ini juga tanpa nunggu admin.</p>
+                    <div class="page-kicker">Total Tagihan</div>
+                    <div class="mt-2 text-3xl font-bold text-slate-950">Rp {{ number_format($transaksi->total_biaya, 0, ',', '.') }}</div>
                 </div>
-                
-                <button id="pay-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition transform hover:-translate-y-0.5">
-                    Bayar Sekarang (Midtrans)
-                </button>
+                <div>
+                    <div class="page-kicker">Pelanggan</div>
+                    <div class="mt-2 text-xl font-bold text-slate-950">{{ $transaksi->pelanggan->nama_pelanggan ?? 'Umum' }}</div>
+                </div>
+                <div>
+                    <div class="page-kicker">Status</div>
+                    <div class="mt-2">
+                        <span class="badge {{ $transaksi->status_pembayaran === 'lunas' ? 'badge-success' : 'badge-warning' }}">
+                            {{ str_replace('_', ' ', $transaksi->status_pembayaran) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div class="surface-card">
+                <div class="feature-icon">M</div>
+                <h2 class="mt-5 text-2xl font-bold text-slate-950">Bayar otomatis</h2>
+                <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan lewat QRIS, virtual account, e-wallet, dan metode digital lain.</p>
+                <button id="pay-button" class="btn-primary mt-8 w-full">Bayar Sekarang via Midtrans</button>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 hover:border-green-400 transition">
-                <div class="text-center mb-6">
-                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">Transfer Manual</h3>
-                    <p class="text-slate-500 text-sm">Transfer ke <b>BCA 123456789</b> (A.N. Putra Jaya Motor), lalu upload foto struk di bawah ini.</p>
+            <div class="surface-card">
+                <div class="feature-icon">T</div>
+                <h2 class="mt-5 text-2xl font-bold text-slate-950">Transfer manual</h2>
+                <p class="mt-3 text-sm leading-7 text-slate-500">Transfer ke rekening yang tersedia, lalu unggah bukti pembayaran agar admin bisa melakukan konfirmasi.</p>
+
+                <div class="mt-6 rounded-[24px] border border-slate-100 bg-slate-50/80 p-4 text-sm leading-7 text-slate-600">
+                    BCA 123456789 a.n. Putra Jaya Motor
                 </div>
-                
-                <form action="{{ route('transaksi.uploadStruk', $transaksi->id) }}" method="POST" enctype="multipart/form-data">
+
+                <form action="{{ route('transaksi.uploadStruk', $transaksi->id) }}" method="POST" enctype="multipart/form-data" class="form-shell mt-6">
                     @csrf
-                    <div class="mb-4">
-                        <input type="file" name="bukti_struk" accept="image/*" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border border-slate-200 rounded-lg p-2 cursor-pointer">
+                    <div class="form-field">
+                        <label class="field-label" for="bukti_struk">Upload bukti transfer</label>
+                        <input id="bukti_struk" type="file" name="bukti_struk" accept="image/*" required class="form-input file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white">
                     </div>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition transform hover:-translate-y-0.5">
-                        Kirim Bukti Transfer
-                    </button>
+                    <button type="submit" class="btn-accent w-full">Kirim Bukti Transfer</button>
                 </form>
             </div>
-
         </div>
     </div>
 
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
-    <script type="text/javascript">
-        document.getElementById('pay-button').onclick = function(){
-            // Manggil Snap Token yang udah kita bikin di Controller tadi
+    <script>
+        document.getElementById('pay-button').onclick = function() {
             snap.pay('{{ $transaksi->snap_token }}', {
-                onSuccess: function(result){
-                    alert("Wih sukses bro! Pembayaran berhasil.");
-                    // Otomatis lempar ke halaman cetak nota
+                onSuccess: function() {
+                    alert('Pembayaran berhasil.');
                     window.location.href = "{{ route('transaksi.cetak', $transaksi->id) }}";
                 },
-                onPending: function(result){
-                    alert("Menunggu pembayaran...");
+                onPending: function() {
+                    alert('Menunggu pembayaran.');
                 },
-                onError: function(result){
-                    alert("Waduh, pembayarannya gagal bro.");
+                onError: function() {
+                    alert('Pembayaran gagal.');
                 },
-                onClose: function(){
-                    alert('Pop-up ditutup sebelum bayar. Jangan lupa bayar ya!');
+                onClose: function() {
+                    alert('Pop-up pembayaran ditutup sebelum transaksi selesai.');
                 }
             });
         };

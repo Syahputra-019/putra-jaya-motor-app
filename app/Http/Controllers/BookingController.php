@@ -11,15 +11,25 @@ class BookingController extends Controller
 {
     public function index()
     {
-        // ambil data booking, sekalian bawa data pelanggan dan mekanik
-        $bookings = Booking::with(['pelanggan', 'mekanik'])->orderBy('jadwal_booking', 'desc')->paginate(10);
+        $query = Booking::with(['pelanggan', 'mekanik'])->orderBy('jadwal_booking', 'desc');
+
+        if (auth()->user()->role === 'pelanggan') {
+            $query->where('user_id', auth()->id());
+        }
+
+        $bookings = $query->paginate(10);
+
         return view('booking.index', compact('bookings'));
     }
 
     public function create()
     {
-        $pelanggans = Pelanggan::all();
+        $pelanggans = auth()->user()->role === 'pelanggan'
+            ? Pelanggan::where('user_id', auth()->id())->get()
+            : Pelanggan::all();
+
         $mekaniks = Mekanik::all();
+
         return view('booking.create', compact('pelanggans', 'mekaniks'));
     }
 
@@ -35,20 +45,45 @@ class BookingController extends Controller
             'status' => 'required|in:menunggu,diproses,selesai,dibatalkan',
         ]);
 
-        Booking::create($request->all());
+        $data = $request->all();
+
+        if (auth()->user()->role === 'pelanggan') {
+            $pelanggan = Pelanggan::where('user_id', auth()->id())->firstOrFail();
+            $data['pelanggan_id'] = $pelanggan->id;
+            $data['user_id'] = auth()->id();
+        } else {
+            $pelanggan = Pelanggan::findOrFail($data['pelanggan_id']);
+            $data['user_id'] = $pelanggan->user_id;
+        }
+
+        $data['status_pembayaran'] = $data['status_pembayaran'] ?? 'belum lunas';
+
+        Booking::create($data);
 
         return redirect()->route('booking.index')->with('success', 'Booking berhasil dibuat!');
     }
 
     public function edit(Booking $booking)
     {
-        $pelanggans = Pelanggan::all();
+        if (auth()->user()->role === 'pelanggan' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $pelanggans = auth()->user()->role === 'pelanggan'
+            ? Pelanggan::where('user_id', auth()->id())->get()
+            : Pelanggan::all();
+
         $mekaniks = Mekanik::all();
+
         return view('booking.edit', compact('booking', 'pelanggans', 'mekaniks'));
     }
 
     public function update(Request $request, Booking $booking)
     {
+        if (auth()->user()->role === 'pelanggan' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $request->validate([
             'pelanggan_id' => 'required|exists:pelanggans,id',
             'mekanik_id' => 'nullable|exists:mekaniks,id',
@@ -61,32 +96,45 @@ class BookingController extends Controller
             'catatan_mekanik' => 'nullable|string',
         ]);
 
-        $booking->update($request->all());
+        $data = $request->all();
+
+        if (auth()->user()->role === 'pelanggan') {
+            $pelanggan = Pelanggan::where('user_id', auth()->id())->firstOrFail();
+            $data['pelanggan_id'] = $pelanggan->id;
+            $data['user_id'] = auth()->id();
+        } else {
+            $pelanggan = Pelanggan::findOrFail($data['pelanggan_id']);
+            $data['user_id'] = $pelanggan->user_id;
+        }
+
+        $booking->update($data);
 
         return redirect()->back()->with('success', 'Status dan catatan servis berhasil diupdate!');
     }
 
     public function destroy(Booking $booking)
     {
+        if (auth()->user()->role === 'pelanggan' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $booking->delete();
         return redirect()->route('booking.index')->with('success', 'Booking berhasil dihapus!');
     }
 
     public function myBooking()
     {
-// 1. Cari data pelanggan yang terhubung dengan akun (user) yang sedang login
-    $pelanggan = \App\Models\Pelanggan::where('user_id', auth()->user()->id)->first();
+        $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
 
-    $booking = null;
+        $booking = null;
 
-    // 2. Jika akun ini benar-benar punya data pelanggan, baru cari booking-nya
-    if ($pelanggan) {
-        $booking = \App\Models\Booking::where('pelanggan_id', $pelanggan->id)
-            ->latest() // Ambil yang paling baru
-            ->first();
-    }
+        if ($pelanggan) {
+            $booking = Booking::where('user_id', auth()->id())
+                ->latest()
+                ->first();
+        }
 
-    return view('booking.my_booking', compact('booking'));
+        return view('booking.my_booking', compact('booking'));
     }
 
 }

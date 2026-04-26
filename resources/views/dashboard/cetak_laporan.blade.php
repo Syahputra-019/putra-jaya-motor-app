@@ -7,154 +7,204 @@
     <title>Laporan Pendapatan - {{ $judulFilter }}</title>
     <style>
         body {
-            font-family: 'Courier New', Courier, monospace;
-            color: #333;
-            line-height: 1.5;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px double #000;
-            padding-bottom: 10px;
-        }
-
-        .header h1 {
             margin: 0;
-            text-transform: uppercase;
+            padding: 32px;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #0f172a;
+            background: #eef3fb;
         }
 
-        .info {
-            margin-bottom: 20px;
-            font-size: 14px;
+        .report {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12);
+        }
+
+        .report-header {
+            padding: 32px;
+            color: #ffffff;
+            background: linear-gradient(145deg, #0d1f3a, #1b447d);
+        }
+
+        .report-header h1 {
+            margin: 0;
+            font-size: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .report-header p {
+            margin: 10px 0 0;
+            color: rgba(255, 255, 255, 0.76);
+        }
+
+        .report-body {
+            padding: 28px 32px 32px;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            flex: 1 1 240px;
+            padding: 18px 20px;
+            border-radius: 22px;
+            background: #f8fafc;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .summary-value {
+            margin-top: 8px;
+            font-size: 24px;
+            font-weight: 800;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
         }
 
         th,
         td {
-            border: 1px solid #000;
-            padding: 8px;
+            padding: 14px 12px;
+            border-bottom: 1px solid #e2e8f0;
             text-align: left;
-            font-size: 12px;
+            font-size: 14px;
         }
 
         th {
-            background-color: #f2f2f2;
+            font-size: 12px;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
+            color: #64748b;
+            background: #f8fafc;
         }
 
         .text-right {
             text-align: right;
         }
 
-        .total-section {
-            font-weight: bold;
-            font-size: 16px;
-            margin-top: 20px;
-            text-align: right;
+        .actions {
+            margin-top: 24px;
+            text-align: center;
         }
 
-        .footer {
-            margin-top: 50px;
-            text-align: right;
-            font-size: 12px;
+        .actions a,
+        .actions button {
+            display: inline-block;
+            margin: 0 6px;
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            color: #ffffff;
+            background: #0d1f3a;
         }
 
-        .signature {
-            margin-top: 80px;
-            font-weight: bold;
-            text-decoration: underline;
+        .actions a {
+            background: #475569;
         }
 
-        /* CSS biar pas diprint rapi */
         @media print {
-            .no-print {
-                display: none;
+            body {
+                background: #ffffff;
+                padding: 0;
             }
 
-            body {
-                margin: 0;
-                padding: 20px;
+            .report {
+                max-width: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .actions {
+                display: none;
             }
         }
     </style>
 </head>
 
 <body>
-
-    <div class="header">
-        <h1>LAPORAN PENDAPATAN BENGKEL</h1>
-        <p>Alamat Bengkel Ortu Lu (Isi Sendiri Bro) | Telp: 0812xxxxxx</p>
-    </div>
-
-    <div class="info">
-        <strong>Periode Laporan:</strong> {{ $judulFilter }} <br>
-        <strong>Dicetak Pada:</strong> {{ date('d/m/Y H:i') }}
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Tgl</th>
-                <th>Kode</th>
-                <th>Pelanggan</th>
-                <th>Mekanik</th>
-                <th class="text-right">Total Biaya</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($transaksi as $index => $item)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ date('d/m/y', strtotime($item->tanggal)) }}</td>
-                    <td>{{ $item->kode_transaksi }}</td>
-                    <td>{{ $item->pelanggan->nama_pelanggan }}</td>
-                    <td>{{ $item->mekanik->nama_mekanik }}</td>
-                    <td class="text-right">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" style="text-align: center;">Tidak ada data transaksi lunas pada periode ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <div class="total-section">
-        TOTAL PENDAPATAN: Rp {{ number_format($pendapatanTotal, 0, ',', '.') }}
-    </div>
-
-    <div class="footer">
-        Dicetak oleh sistem pada {{ date('d F Y') }} <br>
-        <div class="signature">
-            (
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            )
+    <div class="report">
+        <div class="report-header">
+            <h1>Laporan Pendapatan Bengkel</h1>
+            <p>Periode {{ $judulFilter }} - dicetak pada {{ date('d M Y H:i') }}</p>
         </div>
-        <p>Owner Bengkel</p>
-    </div>
 
-    <div class="no-print" style="margin-top: 20px; text-align: center;">
-        <button onclick="window.print()"
-            style="padding: 10px 20px; background: #4f46e5; color: #fff; border: none; border-radius: 5px; cursor: pointer;">Print
-            Sekarang</button>
-        <a href="{{ route('dashboard') }}"
-            style="padding: 10px 20px; background: #6b7280; color: #fff; text-decoration: none; border-radius: 5px; margin-left: 10px;">Kembali</a>
+        <div class="report-body">
+            <div class="summary">
+                <div class="summary-card">
+                    <div class="summary-label">Periode Laporan</div>
+                    <div class="summary-value">{{ $judulFilter }}</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Total Pendapatan</div>
+                    <div class="summary-value">Rp {{ number_format($pendapatanTotal, 0, ',', '.') }}</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Jumlah Transaksi</div>
+                    <div class="summary-value">{{ $transaksi->count() }}</div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Kode</th>
+                        <th>Pelanggan</th>
+                        <th>Mekanik</th>
+                        <th class="text-right">Total Biaya</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($transaksi as $index => $item)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ date('d/m/Y', strtotime($item->tanggal)) }}</td>
+                            <td>{{ $item->kode_transaksi }}</td>
+                            <td>{{ $item->pelanggan->nama_pelanggan }}</td>
+                            <td>{{ $item->mekanik->nama_mekanik }}</td>
+                            <td class="text-right">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #64748b;">Tidak ada data transaksi lunas pada periode ini.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+
+            <div class="actions">
+                <button onclick="window.print()">Print</button>
+                <a href="{{ route('dashboard') }}">Kembali</a>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Otomatis buka dialog print pas halaman kelar loading
         window.onload = function() {
             window.print();
         };
     </script>
-
 </body>
 
 </html>
