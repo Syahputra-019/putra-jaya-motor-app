@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('spareparts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('price');
-            $table->integer('stock');
+            $table->string('nama_sparepart');
+            $table->integer('harga');
+            $table->integer('stok');
             $table->timestamps();
         });
     }

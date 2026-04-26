@@ -10,17 +10,17 @@
             @csrf 
             @method('PUT') <div class="mb-4">
                 <label class="block text-sm font-medium text-slate-700 mb-2">Nama Sparepart</label>
-                <input type="text" name="name" value="{{ $sparepart->name }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
+                <input type="text" name="nama_sparepart" value="{{ $sparepart->nama_sparepart }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
             </div>
 
             <div class="mb-4 grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Harga (Rp)</label>
-                    <input type="number" name="price" value="{{ $sparepart->price }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
+                    <input type="number" name="harga" value="{{ $sparepart->harga }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Stok Saat Ini</label>
-                    <input type="number" name="stock" value="{{ $sparepart->stock }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
+                    <input type="number" name="stok" value="{{ $sparepart->stok }}" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500 outline-none" required>
                 </div>
             </div>
 

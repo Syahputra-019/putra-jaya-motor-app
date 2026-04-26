@@ -2,36 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id',
-        'mechanic_id',
-        'vehicle_plate',
-        'vehicle_model',
-        'complaint',
-        'booking_date',
+        'pelanggan_id',
+        'mekanik_id',
+        'plat_nomor',
+        'tipe_motor',
+        'keluhan',
+        'jadwal_booking',
         'status',
-        'total_price'
+        'biaya_jasa',
+        'biaya_sparepart',
+        'total_biaya',
+        'status_pembayaran',
     ];
 
-    // RELASI : boking ini milik pelanggan siapa?
-    public function user()
+    // RELASI : booking ini milik pelanggan siapa?
+    public function pelanggan()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Pelanggan::class);
     }
 
-    // RELASI : boking ini ditangani oleh mekanik siapa?
-    public function mechanic()
+    // RELASI : booking ini ditangani oleh mekanik siapa?
+    public function mekanik()
     {
-        return $this->belongsTo(User::class, 'mechanic_id');
-    }
-
-    // RELASI : booking ini punya banyak keranjang apa aja?
-    public function details()
-    {
-        return $this->hasMany(BookingDetail::class);
+        return $this->belongsTo(Mekanik::class);
     }
 }

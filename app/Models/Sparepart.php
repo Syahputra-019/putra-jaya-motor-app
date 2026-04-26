@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Sparepart extends Model
 {
     protected $fillable = [
-        'name',
-        'price',
-        'stock',
+        'nama_sparepart',
+        'harga',
+        'stok',
     ];
 
     // RELASI : Sparepart ini pernah dipakai di booking detail mana aja?

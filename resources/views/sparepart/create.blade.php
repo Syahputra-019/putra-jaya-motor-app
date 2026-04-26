@@ -11,17 +11,17 @@
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-slate-700 mb-2">Nama Sparepart</label>
-                <input type="text" name="name" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: Kampas Rem Depan" required>
+                <input type="text" name="nama_sparepart" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: Kampas Rem Depan" required>
             </div>
 
             <div class="mb-4 grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Harga (Rp)</label>
-                    <input type="number" name="price" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 50000" required>
+                    <input type="number" name="harga" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 50000" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Stok Awal</label>
-                    <input type="number" name="stock" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 10" required>
+                    <input type="number" name="stok" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 10" required>
                 </div>
             </div>
 

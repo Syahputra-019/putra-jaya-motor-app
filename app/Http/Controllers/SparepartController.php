@@ -28,16 +28,16 @@ class SparepartController extends Controller
     {
         // Validasi data (biar user nggak masukin huruf di kolom harga/stok)
         $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|numeric|min:0',
+            'nama_sparepart' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'stok' => 'required|numeric|min:0',
         ]);
 
         // Simpan data ke database
         Sparepart::create([
-            'name' => $request->name,
-            'price' => $request->price,
-            'stock' => $request->stock,
+            'nama_sparepart' => $request->nama_sparepart,
+            'harga' => $request->harga,
+            'stok' => $request->stok,
         ]);
 
         // Redirect kembali ke halaman index dengan pesan sukses
@@ -58,17 +58,17 @@ class SparepartController extends Controller
     {
         // Valikasi inputan baru
         $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|numeric|min:0',
+            'nama_sparepart' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'stok' => 'required|numeric|min:0',
         ]);
 
         // Cari data lama, lalau timpa dengan data baru
         $sparepart = Sparepart::findOrFail($id);
         $sparepart->update([
-            'name' => $request->name,
-            'price' => $request->price,
-            'stock' => $request->stock,
+            'nama_sparepart' => $request->nama_sparepart,
+            'harga' => $request->harga,
+            'stok' => $request->stok,
         ]);
 
         // Redirect kembali ke halaman index dengan pesan sukses

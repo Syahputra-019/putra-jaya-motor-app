@@ -14,18 +14,18 @@ class SparepartSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            ['name' => 'Oli Mesin AHM MPX-2 0.8L', 'price' => 55000, 'stock' => 50],
-            ['name' => 'Oli Gardan AHM 120ml', 'price' => 18000, 'stock' => 45],
-            ['name' => 'Kampas Rem Depan (Cakram) Beat/Vario', 'price' => 55000, 'stock' => 30],
-            ['name' => 'Kampas Rem Belakang (Tromol) Beat/Vario', 'price' => 50000, 'stock' => 25],
-            ['name' => 'V-Belt + Roller Set AHM K44', 'price' => 165000, 'stock' => 15],
-            ['name' => 'Busi NGK CPR9EA-9 (Matic Honda)', 'price' => 25000, 'stock' => 40],
-            ['name' => 'Filter Udara Honda Beat FI', 'price' => 45000, 'stock' => 20],
-            ['name' => 'Filter Udara Honda Vario 125/150', 'price' => 55000, 'stock' => 15],
-            ['name' => 'Bohlam Lampu Depan Standar', 'price' => 25000, 'stock' => 35],
-            ['name' => 'Aki Kering GS Astra GTZ4V', 'price' => 230000, 'stock' => 10],
-            ['name' => 'Ban Depan Federal 80/90-14 (Tubeless)', 'price' => 185000, 'stock' => 12],
-            ['name' => 'Ban Belakang Federal 90/90-14 (Tubeless)', 'price' => 220000, 'stock' => 12],
+            ['nama_sparepart' => 'Oli Mesin AHM MPX-2 0.8L', 'harga' => 55000, 'stok' => 50],
+            ['nama_sparepart' => 'Oli Gardan AHM 120ml', 'harga' => 18000, 'stok' => 45],
+            ['nama_sparepart' => 'Kampas Rem Depan (Cakram) Beat/Vario', 'harga' => 55000, 'stok' => 30],
+            ['nama_sparepart' => 'Kampas Rem Belakang (Tromol) Beat/Vario', 'harga' => 50000, 'stok' => 25],
+            ['nama_sparepart' => 'V-Belt + Roller Set AHM K44', 'harga' => 165000, 'stok' => 15],
+            ['nama_sparepart' => 'Busi NGK CPR9EA-9 (Matic Honda)', 'harga' => 25000, 'stok' => 40],
+            ['nama_sparepart' => 'Filter Udara Honda Beat FI', 'harga' => 45000, 'stok' => 20],
+            ['nama_sparepart' => 'Filter Udara Honda Vario 125/150', 'harga' => 55000, 'stok' => 15],
+            ['nama_sparepart' => 'Bohlam Lampu Depan Standar', 'harga' => 25000, 'stok' => 35],
+            ['nama_sparepart' => 'Aki Kering GS Astra GTZ4V', 'harga' => 230000, 'stok' => 10],
+            ['nama_sparepart' => 'Ban Depan Federal 80/90-14 (Tubeless)', 'harga' => 185000, 'stok' => 12],
+            ['nama_sparepart' => 'Ban Belakang Federal 90/90-14 (Tubeless)', 'harga' => 220000, 'stok' => 12],
         ];
 
         foreach ($data as $item) {

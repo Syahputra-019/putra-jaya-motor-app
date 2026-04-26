@@ -14,18 +14,17 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             // Relasi ke tabel users (pelanggan yang membuat booking)
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('mechanic_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('pelanggan_id')->constrained('pelanggans')->cascadeOnDelete();
+            $table->foreignId('mekanik_id')->nullable()->constrained('mekaniks')->nullOnDelete();
 
-            $table->string('vehicle_plate');
-            $table->string('vehicle_model');
-            $table->text('complaint');
-            $table->dateTime('booking_date');
+            $table->string('plat_nomor');
+            $table->string('tipe_motor');
+            $table->text('keluhan');
+            $table->dateTime('jadwal_booking');
 
             // kolom untuk fitur tracking status
-            $table->enum('status', ['pending', 'process', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['menunggu', 'diproses', 'selesai', 'dibatalkan'])->default('menunggu');
 
-            $table->integer('total_price')->default(0);
             $table->timestamps();
         });
     }

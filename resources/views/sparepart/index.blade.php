@@ -33,12 +33,12 @@
                 @forelse ($spareparts as $index => $item)
                     <tr class="transition hover:bg-slate-50">
                         <td class="p-4 text-slate-700">{{ $index + 1 }}</td>
-                        <td class="p-4 font-medium text-slate-800">{{ $item->name }}</td>
-                        <td class="p-4 text-slate-700">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                        <td class="p-4 font-medium text-slate-800">{{ $item->nama_sparepart }}</td>
+                        <td class="p-4 text-slate-700">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                         <td class="p-4 text-slate-700">
                             <span
-                                class="{{ $item->stock > 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }} rounded-md px-2 py-1 text-xs font-bold">
-                                {{ $item->stock }}
+                                class="{{ $item->stok > 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }} rounded-md px-2 py-1 text-xs font-bold">
+                                {{ $item->stok }}
                             </span>
                         </td>
                         <td class="flex justify-center gap-2 p-4">
@@ -49,7 +49,7 @@
                                 class="form-hapus inline-block">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" data-name="{{ $item->name }}"
+                                <button type="button" data-name="{{ $item->nama_sparepart }}"
                                     class="btn-hapus rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700 transition hover:bg-red-200">
                                     Hapus
                                 </button>
