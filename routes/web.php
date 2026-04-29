@@ -7,6 +7,7 @@ use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MekanikController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SparepartController;
 use App\Http\Controllers\TransaksiController;
@@ -52,6 +53,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('/booking', BookingController::class);
         Route::get('/my-booking', [BookingController::class, 'myBooking'])->name('booking.mine');
     });
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/info', [ProfileController::class, 'updateInfo'])->name('profile.updateInfo'); // Ganti ini
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 });
 
 Route::post('/midtrans/callback', [TransaksiController::class, 'callback']);

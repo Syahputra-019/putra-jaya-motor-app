@@ -18,7 +18,11 @@
     if ($user?->role === 'admin') {
         $navigation['Admin'] = [
             ['label' => 'Dashboard', 'route' => 'dashboard', 'patterns' => ['dashboard*']],
-            ['label' => 'Data Mekanik', 'route' => 'mekanik.index', 'patterns' => ['mekanik.index', 'mekanik.create', 'mekanik.edit']],
+            [
+                'label' => 'Data Mekanik',
+                'route' => 'mekanik.index',
+                'patterns' => ['mekanik.index', 'mekanik.create', 'mekanik.edit'],
+            ],
             ['label' => 'Data Sparepart', 'route' => 'sparepart.index', 'patterns' => ['sparepart.*']],
             ['label' => 'Data Pelanggan', 'route' => 'pelanggan.index', 'patterns' => ['pelanggan.*']],
             ['label' => 'Jasa Servis', 'route' => 'service.index', 'patterns' => ['service.*']],
@@ -61,10 +65,11 @@
 
                     @foreach ($items as $item)
                         @php
-                            $isActive = collect($item['patterns'])->contains(fn($pattern) => request()->routeIs($pattern));
+                            $isActive = collect($item['patterns'])->contains(
+                                fn($pattern) => request()->routeIs($pattern),
+                            );
                         @endphp
-                        <a href="{{ route($item['route']) }}"
-                            class="app-nav-link {{ $isActive ? 'is-active' : '' }}">
+                        <a href="{{ route($item['route']) }}" class="app-nav-link {{ $isActive ? 'is-active' : '' }}">
                             <span class="app-nav-dot"></span>
                             <span>{{ $item['label'] }}</span>
                         </a>
@@ -93,19 +98,27 @@
                         </button>
 
                         <div>
-                            <div class="topbar-chip">Blue and Gold Workspace</div>
                             <div class="topbar-title">Putra Jaya Motor</div>
-                            <div class="topbar-subtitle">Panel kerja yang rapi, konsisten, dan nyaman dipakai harian.</div>
+                            <div class="topbar-subtitle">Panel kerja yang rapi, konsisten, dan nyaman dipakai harian.
+                            </div>
                         </div>
                     </div>
 
-                    <div class="user-panel">
-                        <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'G', 0, 1)) }}</div>
+                    <a href="{{ route('profile.edit') }}"
+                        class="user-panel flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-slate-100">
+
+                        @if (isset($user) && $user->foto)
+                            <img src="{{ asset('storage/' . $user->foto) }}" alt="Foto Profil"
+                                class="h-10 w-10 rounded-full border border-slate-200 object-cover">
+                        @else
+                            <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'G', 0, 1)) }}</div>
+                        @endif
+
                         <div>
                             <div class="text-sm font-bold text-slate-900">{{ $user->name ?? 'Guest' }}</div>
                             <div class="user-role">{{ $user->role ?? 'guest' }}</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </header>
 
