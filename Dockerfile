@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# 1. Install library yang dibutuhkan sistem (tambah git & curl)
+# 1. Install library yang dibutuhkan sistem (+ sqlite3)
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
@@ -8,13 +8,15 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
-    curl
+    curl \
+    sqlite3 \
+    libsqlite3-dev
 
 # 2. Bersihkan cache instalasi
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 3. Install ekstensi PHP untuk Laravel
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+# 3. Install ekstensi PHP untuk Laravel (+ pdo_sqlite)
+RUN docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd
 
 # 4. Aktifkan mod_rewrite Apache (Wajib buat Laravel)
 RUN a2enmod rewrite
@@ -30,10 +32,11 @@ WORKDIR /var/www/html
 # 7. Copy semua file project kamu ke server
 COPY . /var/www/html
 
-# 8. Install Composer (Pakai jurus --ignore-platform-reqs biar gak rewel)
+# 8. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
-# 9. Bikin folder & atur izin file
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# 9. Bikin folder database, bikin file sqlite kosong, & atur izin
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+RUN touch /var/www/html/database/database.sqlite
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
