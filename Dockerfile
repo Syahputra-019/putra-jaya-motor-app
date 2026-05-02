@@ -40,3 +40,6 @@ RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 RUN touch /var/www/html/database/database.sqlite
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+
+# 10. JALAN TIKUS: Migrasi otomatis sebelum server Apache nyala
+CMD php artisan migrate --force && apache2-foreground
