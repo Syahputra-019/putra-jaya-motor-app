@@ -52,9 +52,11 @@
         <aside class="app-sidebar mobile-sidebar lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:w-80 lg:translate-x-0"
             :class="{ 'open': sidebarOpen }">
             <div class="sidebar-brand">
-                <div class="sidebar-brand-mark">PJM</div>
+                <div class="sidebar-brand-mark">
+                    <img src="{{ asset('images/logooo.png') }}" alt="Logo PJM" class="sidebar-brand-mark object-cover">
+                </div>
                 <div class="sidebar-brand-copy">
-                    <span>Putra Jaya</span>
+                    <span>PJM</span>
                     <span>Sistem Operasional Bengkel</span>
                 </div>
             </div>
@@ -76,7 +78,7 @@
                     @endforeach
                 @endforeach
 
-                <div class="nav-section-label">Sesi</div>
+                <div class="nav-section-label"></div>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="app-nav-link w-full text-left text-rose-200 hover:text-white">
@@ -99,8 +101,6 @@
 
                         <div>
                             <div class="topbar-title">Putra Jaya Motor</div>
-                            <div class="topbar-subtitle">Panel kerja yang rapi, konsisten, dan nyaman dipakai harian.
-                            </div>
                         </div>
                     </div>
 

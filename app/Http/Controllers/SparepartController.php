@@ -8,14 +8,20 @@ use Illuminate\Http\Request;
 class SparepartController extends Controller
 {
     // Fungsi untuk menampilkan halaman utama sparepart
-    public function index()
-    {        
-        // ambil semua data sparepart dari database, urukan dari yang terbaru
-        $spareparts = Sparepart::orderBy('created_at', 'desc')->paginate(10);
+    public function index(Request $request)
+{        
+    // Ambil data sparepart, kalau ada pencarian difilter, kalau tidak tampilkan semua
+    $spareparts = Sparepart::query()
+        ->when($request->search, function ($query, $search) {
+            return $query->where('nama_sparepart', 'like', '%' . $search . '%');
+        })
+        ->orderBy('created_at', 'desc') // Tetap pakai cara kamu juga nggak masalah
+        ->paginate(10)
+        ->withQueryString(); // Jaga agar kata kunci tidak hilang saat pindah halaman
 
-        // Kirim datanya ke file view
-        return view('sparepart.index', compact('spareparts'));
-    }
+    // Kirim datanya ke file view
+    return view('sparepart.index', compact('spareparts'));
+}
 
     // Fungsi untuk menampilkan form tambah data
     public function create()

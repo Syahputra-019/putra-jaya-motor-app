@@ -27,6 +27,7 @@
 
     html {
         scroll-behavior: smooth;
+        @apply overflow-x-hidden;
     }
 
     body {
@@ -37,6 +38,7 @@
             radial-gradient(circle at top left, rgba(246, 197, 75, 0.24), transparent 26%),
             radial-gradient(circle at top right, rgba(19, 48, 90, 0.14), transparent 22%),
             linear-gradient(180deg, #f7f9fc 0%, #eef3fb 100%);
+            @apply overflow-x-hidden;
     }
 
     h1,
@@ -461,21 +463,24 @@
         border-radius: 32px;
     }
 
+    /* === MULAI KODE TIMELINE YANG SUDAH DIRAPIKAN === */
     .timeline-track {
         @apply relative mt-6 grid grid-cols-4 gap-4;
     }
 
     .timeline-track::before {
         content: '';
-        @apply absolute top-6 h-1 rounded-full bg-slate-200;
+        @apply absolute top-7 h-1 rounded-full bg-slate-200;
         left: 12.5%;
         right: 12.5%;
     }
 
     .timeline-progress {
-        @apply absolute top-6 h-1 rounded-full;
+        @apply absolute top-7 h-1 rounded-full;
         background: linear-gradient(90deg, var(--brand-navy-700), var(--brand-yellow-500));
         left: 12.5%;
+        max-width: 75%;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .timeline-node {
@@ -483,25 +488,26 @@
     }
 
     .timeline-icon {
-        @apply flex h-12 w-12 items-center justify-center rounded-2xl border-4 border-slate-200 bg-white text-sm font-black text-slate-400;
+        @apply flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-slate-200 bg-white text-slate-400 transition-all duration-500;
     }
 
     .timeline-icon.is-active {
-        border-color: rgba(19, 68, 125, 0.18);
-        background: linear-gradient(135deg, var(--brand-navy-800), var(--brand-navy-900));
-        color: white;
+        border-color: rgba(19, 68, 125, 0.2);
+        @apply bg-slate-900 text-white scale-110 shadow-lg;
     }
 
     .timeline-icon.is-done {
         border-color: rgba(246, 197, 75, 0.3);
         background: linear-gradient(135deg, var(--brand-yellow-500), var(--brand-yellow-400));
-        color: var(--brand-navy-950);
+        @apply text-slate-900;
     }
 
     .timeline-label {
         @apply text-xs font-bold uppercase text-slate-500;
         letter-spacing: 0.18em;
     }
+
+    /* === AKHIR KODE TIMELINE === */
 
     .auth-body {
         background:

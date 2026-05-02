@@ -8,4 +8,10 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+
+    server: {
+        watch: {
+            usePolling: true, // Memaksa Vite mengecek file setiap detik
+        }
+    }
 });
