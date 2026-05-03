@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Tambahin jurus ini biar CSS/JS tembus di Render
+        if (env('APP_ENV') !== 'local') {
+            URL::forceScheme('https');
+        }
     }
 }
