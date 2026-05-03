@@ -44,10 +44,9 @@ RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 RUN npm install
 RUN npm run build
 
-# 11. Bikin folder database, bikin file sqlite kosong, & atur izin
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-RUN touch /var/www/html/database/database.sqlite
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+# 11. Atur izin folder storage & cache (Wajib buat Laravel)
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 12. JALAN TIKUS: Migrasi otomatis sebelum server Apache nyala
-CMD php artisan migrate --force && apache2-foreground
+# 12. JALAN TIKUS: Migrasi & Seed ke MySQL Aiven setiap kali deploy
+CMD php artisan migrate --force --seed && apache2-foreground
