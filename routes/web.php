@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SparepartController;
 use App\Http\Controllers\TransaksiController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 // 1. UBAH rute '/' yang tadinya redirect ke login, jadi ke Landing Page
@@ -64,3 +65,13 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::post('/midtrans/callback', [TransaksiController::class, 'callback']);
+
+Route::get('/eksekusi-migrate-hosting', function() {
+    // Jalanin migrate
+    Artisan::call('migrate', ['--force' => true]);
+
+    // Jalanin clear cache sekalian
+    Artisan::call('optimize:clear');
+
+    return 'Mantap bro! Database dan Cache berhasil di-update di hosting! 🚀';
+});
