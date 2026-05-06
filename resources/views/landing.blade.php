@@ -57,17 +57,85 @@
 
                 @auth
                     @if (Auth::user()->role === 'admin')
-                        <a href="{{ route('dashboard') }}" class="btn-primary">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="btn-primary">Dashboard Admin</a>
                     @elseif (Auth::user()->role === 'mekanik')
                         <a href="{{ route('mekanik.jadwal') }}" class="btn-primary">Jadwal Servis</a>
                     @elseif (Auth::user()->role === 'pelanggan')
-                        <a href="{{ route('booking.mine') }}" class="btn-primary">Booking Saya</a>
-                    @endif
+                        <div class="relative" x-data="{ openProfile: false }">
+                            <button @click="openProfile = !openProfile" @click.away="openProfile = false"
+                                class="flex items-center gap-3 rounded-full border border-slate-200 bg-white p-1.5 pr-4 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn-secondary">Logout</button>
-                    </form>
+                                <div
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </div>
+
+                                <span class="text-sm font-semibold text-slate-700">
+                                    {{ explode(' ', Auth::user()->name)[0] }}
+                                </span>
+
+                                <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
+                                    :class="openProfile ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div x-show="openProfile" x-transition.opacity.duration.200ms
+                                class="absolute right-0 z-50 mt-3 w-64 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
+                                style="display: none;">
+
+                                <div class="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">Akun Saya
+                                </div>
+
+                                <a href="{{ route('profile.edit') }}"
+                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
+                                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Profil Saya
+                                </a>
+
+                                <a href="{{ route('booking.mine') }}"
+                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
+                                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    Status Servis (Tracking)
+                                </a>
+
+                                <a href="{{ route('komplain.create') }}"
+                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-orange-50 hover:text-orange-600">
+                                    <svg class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    Ajukan Komplain
+                                </a>
+
+                                <div class="my-1 border-t border-slate-100"></div>
+
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-50">
+                                        <svg class="h-5 w-5 text-rose-400" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
                 @endauth
             </div>
 
@@ -87,6 +155,39 @@
                     <a href="{{ route('login') }}" class="btn-secondary mt-2">Login</a>
                     <a href="{{ route('register') }}" class="btn-accent">Register</a>
                 @endguest
+                @guest
+                    <a href="{{ route('login') }}" class="btn-secondary mt-2">Login</a>
+                    <a href="{{ route('register') }}" class="btn-accent">Register</a>
+                @endguest
+
+                @auth
+                    @if (Auth::user()->role === 'pelanggan')
+                        <div class="mt-4 border-t border-slate-100 pt-4">
+                            <div class="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Hai,
+                                {{ Auth::user()->name }}</div>
+
+                            <a href="{{ route('profile.edit') }}"
+                                class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Profil
+                                Saya</a>
+
+                            <a href="{{ route('booking.mine') }}"
+                                class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Status
+                                Servis</a>
+
+                            <a href="{{ route('komplain.create') }}"
+                                class="block rounded-lg py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-50">Ajukan
+                                Komplain</a>
+
+                            <form action="{{ route('logout') }}" method="POST" class="mt-2">
+                                @csrf
+                                <button type="submit"
+                                    class="block w-full rounded-lg py-2 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50">Logout</button>
+                            </form>
+                        </div>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="btn-primary mt-2">Dashboard Staff</a>
+                    @endif
+                @endauth
             </div>
         </div>
     </nav>

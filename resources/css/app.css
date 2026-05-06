@@ -38,7 +38,7 @@
             radial-gradient(circle at top left, rgba(246, 197, 75, 0.24), transparent 26%),
             radial-gradient(circle at top right, rgba(19, 48, 90, 0.14), transparent 22%),
             linear-gradient(180deg, #f7f9fc 0%, #eef3fb 100%);
-            @apply overflow-x-hidden;
+        @apply overflow-x-hidden;
     }
 
     h1,
@@ -59,6 +59,24 @@
 @layer components {
     .app-body {
         @apply min-h-screen;
+    }
+
+    /* Custom Scrollbar tipis biar elegan bro */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
     }
 
     .app-sidebar {

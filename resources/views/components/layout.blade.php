@@ -28,6 +28,7 @@
             ['label' => 'Jasa Servis', 'route' => 'service.index', 'patterns' => ['service.*']],
             ['label' => 'Kasir & Transaksi', 'route' => 'transaksi.index', 'patterns' => ['transaksi.*']],
             ['label' => 'Laporan', 'route' => 'laporan.index', 'patterns' => ['laporan.*']],
+            ['label' => 'Komplain Pelanggan', 'route' => 'pelanggan.komplain.index', 'patterns' => ['pelanggan.komplain.*']],
         ];
     }
 
@@ -49,9 +50,11 @@
         <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/55 lg:hidden"
             @click="sidebarOpen = false"></div>
 
-        <aside class="app-sidebar mobile-sidebar lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:w-80 lg:translate-x-0"
+        <aside
+            class="app-sidebar mobile-sidebar flex h-screen flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:w-80 lg:translate-x-0"
             :class="{ 'open': sidebarOpen }">
-            <div class="sidebar-brand">
+
+            <div class="sidebar-brand shrink-0">
                 <div class="sidebar-brand-mark">
                     <img src="{{ asset('images/logooo.png') }}" alt="Logo PJM" class="sidebar-brand-mark object-cover">
                 </div>
@@ -61,32 +64,50 @@
                 </div>
             </div>
 
-            <nav class="app-nav">
-                @foreach ($navigation as $section => $items)
-                    <div class="nav-section-label">{{ $section }}</div>
+            <div class="custom-scrollbar flex-1 overflow-y-auto">
+                <nav class="app-nav pb-4">
+                    @foreach ($navigation as $section => $items)
+                        <div class="nav-section-label">{{ $section }}</div>
 
-                    @foreach ($items as $item)
-                        @php
-                            $isActive = collect($item['patterns'])->contains(
-                                fn($pattern) => request()->routeIs($pattern),
-                            );
-                        @endphp
-                        <a href="{{ route($item['route']) }}" class="app-nav-link {{ $isActive ? 'is-active' : '' }}">
-                            <span class="app-nav-dot"></span>
-                            <span>{{ $item['label'] }}</span>
-                        </a>
+                        @foreach ($items as $item)
+                            @php
+                                $isActive = collect($item['patterns'])->contains(
+                                    fn($pattern) => request()->routeIs($pattern),
+                                );
+                            @endphp
+                            <a href="{{ route($item['route']) }}"
+                                class="app-nav-link {{ $isActive ? 'is-active' : '' }} flex w-full items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="app-nav-dot"></span>
+                                    <span>{{ $item['label'] }}</span>
+                                </div>
+                                @if ($item['label'] === 'Komplain Pelanggan')
+                                    @php
+                                        $jumlahKomplain = \App\Models\Komplain::where('status', 'menunggu')->count();
+                                    @endphp
+                                    @if ($jumlahKomplain > 0)
+                                        <span
+                                            class="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                                            {{ $jumlahKomplain }}
+                                        </span>
+                                    @endif
+                                @endif
+                            </a>
+                        @endforeach
                     @endforeach
-                @endforeach
+                </nav>
+            </div>
 
-                <div class="nav-section-label"></div>
+            <div class="shrink-0 border-t border-white/10 p-4">
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="app-nav-link w-full text-left text-rose-200 hover:text-white">
-                        <span class="app-nav-dot bg-rose-300 shadow-none"></span>
-                        <span>Logout</span>
+                    <button type="submit"
+                        class="app-nav-link flex w-full items-center gap-2 text-left text-rose-200 hover:text-white">
+                        <span class="app-nav-dot bg-rose-400 shadow-none"></span>
+                        <span class="font-bold">Logout</span>
                     </button>
                 </form>
-            </nav>
+            </div>
         </aside>
 
         <div class="app-shell">

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KomplainController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MekanikController;
@@ -42,6 +43,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/transaksi/{id}/upload-struk', [TransaksiController::class, 'uploadStruk'])->name('transaksi.uploadStruk');
         Route::post('/transaksi/{id}/konfirmasi', [TransaksiController::class, 'konfirmasiPembayaran'])->name('transaksi.konfirmasi');
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/data-komplain', [KomplainController::class, 'adminIndex'])->name('pelanggan.komplain.index');
+        Route::post('/komplain/{id}/tanggapi', [KomplainController::class, 'tanggapi'])->name('komplain.tanggapi');
     });
 
     Route::middleware(['role:mekanik'])->group(function () {
@@ -52,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:pelanggan'])->group(function () {
         Route::resource('/booking', BookingController::class);
         Route::get('/my-booking', [BookingController::class, 'myBooking'])->name('booking.mine');
+        Route::resource('komplain', KomplainController::class);
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
