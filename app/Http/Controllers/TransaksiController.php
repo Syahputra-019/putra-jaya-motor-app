@@ -11,6 +11,7 @@ use App\Models\Sparepart;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -206,30 +207,48 @@ class TransaksiController extends Controller
     }
 
     public function callback(Request $request)
-    {
-        $serverKey = env('MIDTRANS_SERVER_KEY');
-        $hashed = hash('sha512', $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+{
+    // 1. CCTV Pertama: Rekam semua laporan dari Midtrans
+    Log::info('Webhook Midtrans Masuk Bro: ', $request->all());
 
-        if ($hashed == $request->signature_key) {
-            $orderId = $request->order_id;
-            $kodeTransaksi = substr($orderId, 0, strrpos($orderId, '-'));
-            $transaksi = Transaksi::where('kode_transaksi', $kodeTransaksi)->first();
+    $serverKey = env('MIDTRANS_SERVER_KEY');
+    
+    // Perbaikan biar nominal gross_amount-nya aman dari isu koma (.00)
+    $grossAmount = $request->gross_amount;
+    $hashed = hash('sha512', $request->order_id . $request->status_code . $grossAmount . $serverKey);
 
-            if (!$transaksi) {
-                return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
-            }
+    if ($hashed == $request->signature_key) {
+        // 2. CCTV Kedua: Tanda kalau security lolos
+        Log::info('Signature Key Midtrans Cocok!');
 
-            if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
-                $this->settleTransaksi($transaksi->id);
-            } elseif ($request->transaction_status == 'cancel' || $request->transaction_status == 'deny' || $request->transaction_status == 'expire') {
-                $transaksi->status_pembayaran = 'belum_bayar';
-                $transaksi->save();
-                $this->updateBookingPaymentStatus($transaksi, 'belum lunas');
-            }
+        $orderId = $request->order_id;
+        $kodeTransaksi = substr($orderId, 0, strrpos($orderId, '-'));
+        $transaksi = Transaksi::where('kode_transaksi', $kodeTransaksi)->first();
+
+        if (!$transaksi) {
+            Log::error('Transaksi tidak ditemukan dengan kode: ' . $kodeTransaksi);
+            return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
         }
 
-        return response()->json(['message' => 'Callback diterima bro']);
+        if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
+            Log::info('Proses update status jadi LUNAS untuk transaksi: ' . $kodeTransaksi);
+            
+            // Panggil fungsi settle
+            $this->settleTransaksi($transaksi->id);
+            
+            Log::info('Settle Transaksi Berhasil Dieksekusi!');
+        } elseif (in_array($request->transaction_status, ['cancel', 'deny', 'expire'])) {
+            $transaksi->status_pembayaran = 'belum_bayar';
+            $transaksi->save();
+            $this->updateBookingPaymentStatus($transaksi, 'belum lunas');
+        }
+    } else {
+        // 3. CCTV Ketiga: Tanda kalau security gagal
+        Log::error('Signature Key Midtrans GAGAL/TIDAK COCOK bro!');
     }
+
+    return response()->json(['message' => 'Callback diterima bro']);
+}
 
     public function konfirmasiPembayaran($id)
     {
@@ -324,7 +343,8 @@ class TransaksiController extends Controller
     }
 
     private function settleTransaksi(int $transaksiId): void
-    {
+{
+    try {
         $lowStockSpareparts = [];
         $shouldSendNota = false;
 
@@ -359,14 +379,28 @@ class TransaksiController extends Controller
             return $transaksi->load(['detailTransaksis.sparepart']);
         });
 
+        // Bagian rawan error kita bungkus Try-Catch!
         foreach ($lowStockSpareparts as $sparepart) {
-            $this->kirimNotifStokWA($sparepart);
+            try {
+                $this->kirimNotifStokWA($sparepart);
+            } catch (\Exception $e) {
+                Log::error("Gagal kirim WA Stok: " . $e->getMessage());
+            }
         }
 
         if ($shouldSendNota) {
-            $this->kirimNotaWhatsApp($transaksi);
+            try {
+                $this->kirimNotaWhatsApp($transaksi);
+            } catch (\Exception $e) {
+                Log::error("Gagal kirim WA Nota: " . $e->getMessage());
+            }
         }
+
+    } catch (\Exception $e) {
+        // Kalau database error, catat di CCTV
+        Log::error("CRITICAL ERROR di settleTransaksi: " . $e->getMessage());
     }
+}
 
     private function updateBookingPaymentStatus(Transaksi $transaksi, string $status): void
     {
