@@ -183,28 +183,37 @@ class TransaksiController extends Controller
     }
 
     public function uploadStruk(Request $request, $id)
-    {
-        $request->validate([
-            'bukti_struk' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+{
+    $request->validate([
+        'bukti_struk' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
 
-        $transaksi = Transaksi::findOrFail($id);
+    $transaksi = Transaksi::findOrFail($id);
 
-        if ($request->hasFile('bukti_struk')) {
-            $file = $request->file('bukti_struk');
-            $nama_file = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('struk_transfer'), $nama_file);
-            $transaksi->status_pembayaran = 'menunggu_konfirmasi';
-            $transaksi->bukti_struk = $nama_file;
-            $transaksi->save();
-
-            $this->updateBookingPaymentStatus($transaksi, 'menunggu_konfirmasi');
-
-            return redirect()->route('transaksi.cetak', $id)->with('success', 'Bukti transfer berhasil dikirim! Menunggu konfirmasi admin.');
+    if ($request->hasFile('bukti_struk')) {
+        $file = $request->file('bukti_struk');
+        $nama_file = time() . '_' . $file->getClientOriginalName();
+        
+        // --- TAMBAHAN KODE DARI SENIOR ---
+        // Cek apakah folder struk_transfer sudah ada di Render, kalau belum, bikin otomatis!
+        $destinationPath = public_path('struk_transfer');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
         }
+        // ---------------------------------
 
-        return back()->with('error', 'Gagal mengupload struk.');
+        $file->move($destinationPath, $nama_file);
+        $transaksi->status_pembayaran = 'menunggu_konfirmasi';
+        $transaksi->bukti_struk = $nama_file;
+        $transaksi->save();
+
+        $this->updateBookingPaymentStatus($transaksi, 'menunggu_konfirmasi');
+
+        return redirect()->route('transaksi.cetak', $id)->with('success', 'Bukti transfer berhasil dikirim! Menunggu konfirmasi admin.');
     }
+
+    return back()->with('error', 'Gagal mengupload struk.');
+}
 
     public function callback(Request $request)
 {
