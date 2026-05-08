@@ -194,15 +194,11 @@ class TransaksiController extends Controller
         $file = $request->file('bukti_struk');
         $nama_file = time() . '_' . $file->getClientOriginalName();
         
-        // --- TAMBAHAN KODE DARI SENIOR ---
-        // Cek apakah folder struk_transfer sudah ada di Render, kalau belum, bikin otomatis!
-        $destinationPath = public_path('struk_transfer');
-        if (!file_exists($destinationPath)) {
-            mkdir($destinationPath, 0755, true);
-        }
-        // ---------------------------------
+        // --- JURUS SENIOR: PAKAI STORAGE BIAR DIIZINKAN RENDER ---
+        // Ini bakal otomatis nyimpen ke folder: storage/app/public/struk_transfer
+        $file->storeAs('public/struk_transfer', $nama_file);
+        // ---------------------------------------------------------
 
-        $file->move($destinationPath, $nama_file);
         $transaksi->status_pembayaran = 'menunggu_konfirmasi';
         $transaksi->bukti_struk = $nama_file;
         $transaksi->save();

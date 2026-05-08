@@ -57,7 +57,7 @@
                                         @if ($transaksi->status_pembayaran === 'belum_bayar')
                                             <a href="{{ route('transaksi.bayar', $transaksi->id) }}" class="btn-primary !px-4 !py-2">Bayar</a>
                                         @elseif ($transaksi->status_pembayaran === 'menunggu_konfirmasi')
-                                            <a href="{{ asset('struk_transfer/' . $transaksi->bukti_struk) }}" target="_blank" class="btn-secondary !px-4 !py-2">Lihat Struk</a>
+                                            <a href="{{ asset('storage/struk_transfer/' . $transaksi->bukti_struk) }}" target="_blank" class="btn-secondary !px-4 !py-2">Lihat Struk</a>
                                             <form action="{{ route('transaksi.konfirmasi', $transaksi->id) }}" method="POST" class="inline-block">
                                                 @csrf
                                                 <button type="submit" class="btn-accent !px-4 !py-2"

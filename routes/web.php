@@ -75,3 +75,8 @@ Route::get('/eksekusi-migrate-hosting', function() {
 
     return 'Mantap bro! Database dan Cache berhasil di-update di hosting! 🚀';
 });
+
+Route::get('/bikin-storage-link', function () {
+    Artisan::call('storage:link');
+    return 'Mantap bro! Storage berhasil di-link.';
+});
