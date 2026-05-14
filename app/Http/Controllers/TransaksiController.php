@@ -415,4 +415,22 @@ class TransaksiController extends Controller
             ]);
         }
     }
+
+    public function riwayatServis()
+    {
+        $user = auth()->user();
+        $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+
+        if (!$pelanggan) {
+            return redirect()->back()->with('error', 'Data pelanggan tidak ditemukan.');
+        }
+
+        // Menggunakan eager loading (with) agar tidak terjadi N+1 query problem
+        $transaksis = Transaksi::with(['mekanik', 'service', 'detailTransaksis.sparepart', 'booking'])
+            ->where('pelanggan_id', $pelanggan->id)
+            ->latest()
+            ->get();
+
+        return view('pelanggan.riwayat-servis', compact('transaksis'));
+    }
 }

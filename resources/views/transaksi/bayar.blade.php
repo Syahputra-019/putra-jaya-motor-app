@@ -71,16 +71,26 @@
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
     <script>
         document.getElementById('pay-button').onclick = function() {
+            // 1. MUNCULIN LOADING SEBELUM MANGGIL MIDTRANS
+            Swal.fire({
+                title: 'Menghubungkan ke Midtrans...',
+                text: 'Mohon tunggu sebentar, sedang menyiapkan halaman pembayaran.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading() // Ini buat bikin spinner muter-muter
+                }
+            });
+
             snap.pay('{{ $transaksi->snap_token }}', {
                 onSuccess: function(result) {
+                    // SWAL ini otomatis nutup loading yang di atas tadi
                     Swal.fire({
                         title: 'Pembayaran Berhasil!',
-                        text: 'Terima kasih, pembayaran untuk transaksi ini telah kami terima.',
+                        text: 'Terima kasih, pembayaran telah kami terima.',
                         icon: 'success',
-                        confirmButtonColor: '#0d1f3a', // Warna navy sesuai tema kamu
+                        confirmButtonColor: '#0d1f3a',
                         confirmButtonText: 'Lihat Struk'
                     }).then((swalResult) => {
-                        // Redirect ke halaman cetak setelah user klik tombol OK di alert
                         window.location.href = "{{ route('transaksi.cetak', $transaksi->id) }}";
                     });
                 },
@@ -96,16 +106,20 @@
                 onError: function(result) {
                     Swal.fire({
                         title: 'Pembayaran Gagal!',
-                        text: 'Maaf, terjadi kesalahan saat memproses pembayaran Anda.',
+                        text: 'Maaf, terjadi kesalahan saat memproses pembayaran.',
                         icon: 'error',
-                        confirmButtonColor: '#e11d48', // Warna merah untuk error
+                        confirmButtonColor: '#e11d48',
                         confirmButtonText: 'Tutup'
                     });
                 },
                 onClose: function() {
+                    // JIKA USER MENUTUP POP-UP MIDTRANS
+                    // Kita cek, kalau masih ada loading yang nggantung, kita tutup.
+                    Swal.close();
+
                     Swal.fire({
                         title: 'Pembayaran Tertunda',
-                        text: 'Anda menutup pop-up sebelum menyelesaikan pembayaran.',
+                        text: 'Anda menutup halaman sebelum menyelesaikan pembayaran.',
                         icon: 'warning',
                         confirmButtonColor: '#0d1f3a',
                         confirmButtonText: 'Tutup'

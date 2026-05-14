@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('/booking', BookingController::class);
         Route::get('/my-booking', [BookingController::class, 'myBooking'])->name('booking.mine');
         Route::resource('komplain', KomplainController::class);
+        Route::get('/riwayat-servis', [TransaksiController::class, 'riwayatServis'])->name('pelanggan.riwayat');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
