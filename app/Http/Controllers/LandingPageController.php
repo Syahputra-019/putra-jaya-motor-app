@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Pelanggan;
+use App\Models\Sparepart;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +15,8 @@ class LandingPageController extends Controller
     public function index()
     {
         $booking = null;
+        $spareparts = Sparepart::orderBy('nama_sparepart', 'asc')->get();
+        $services = Service::orderBy('nama_service', 'asc')->get();
 
         if (auth()->check() && auth()->user()->role === 'pelanggan') {
             $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
@@ -24,18 +28,21 @@ class LandingPageController extends Controller
             }
         }
 
-        return view('landing', compact('booking'));
+        return view('landing', compact('booking', 'spareparts', 'services'));
     }
 
     public function storeBooking(Request $request)
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            'no_telp' => 'required|string|max:15',
+            'no_telp' => 'required|string|max:20',
             'plat_nomor' => 'required|string',
             'tipe_motor' => 'required|string',
-            'keluhan' => 'required|string',
-            'jadwal_booking' => 'required|date|after_or_equal:today',
+            'keluhan' => 'nullable|string',
+            'jadwal_booking' => 'required|date|after:now',
+            'kategori_servis' => 'required|array|min:1',
+            'layanan_lainnya' => 'nullable|string',
+            'sparepart_diminta' => 'nullable|array',
         ]);
 
         if (Auth::check()) {
@@ -61,6 +68,13 @@ class LandingPageController extends Controller
             );
         }
 
+        $kategori_servis = $request->kategori_servis;
+        if (in_array('Lainnya', $kategori_servis) && $request->filled('layanan_lainnya')) {
+            $kategori_servis = array_map(function($item) use ($request) {
+                return $item === 'Lainnya' ? 'Lainnya: ' . $request->layanan_lainnya : $item;
+            }, $kategori_servis);
+        }
+
         $booking = Booking::create([
             'user_id' => Auth::id(),
             'pelanggan_id' => $pelanggan->id,
@@ -68,6 +82,8 @@ class LandingPageController extends Controller
             'tipe_motor' => $request->tipe_motor,
             'keluhan' => $request->keluhan,
             'jadwal_booking' => $request->jadwal_booking,
+            'kategori_servis' => $kategori_servis,
+            'sparepart_diminta' => $request->sparepart_diminta,
             'status' => 'menunggu',
             'status_pembayaran' => 'belum lunas',
         ]);

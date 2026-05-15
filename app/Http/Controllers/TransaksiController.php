@@ -431,6 +431,6 @@ class TransaksiController extends Controller
             ->latest()
             ->get();
 
-        return view('pelanggan.riwayat-servis', compact('transaksis'));
+        return view('user.history.riwayat-servis', compact('transaksis'));
     }
 }

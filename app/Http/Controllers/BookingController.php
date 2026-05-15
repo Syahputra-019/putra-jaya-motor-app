@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Mekanik;
 use App\Models\Pelanggan;
+use App\Models\Sparepart;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -29,26 +30,34 @@ class BookingController extends Controller
             : Pelanggan::all();
 
         $mekaniks = Mekanik::all();
+        $spareparts = Sparepart::orderBy('nama_sparepart', 'asc')->get();
 
-        return view('booking.create', compact('pelanggans', 'mekaniks'));
+        return view('booking.create', compact('pelanggans', 'mekaniks', 'spareparts'));
     }
 
     public function store(Request $request)
     {
+        $isPelanggan = auth()->user()->role === 'pelanggan';
+
         $request->validate([
-            'pelanggan_id' => 'required|exists:pelanggans,id',
+            'pelanggan_id' => $isPelanggan ? 'nullable' : 'required|exists:pelanggans,id',
             'mekanik_id' => 'nullable|exists:mekaniks,id',
             'plat_nomor' => 'required|string|max:50',
             'tipe_motor' => 'required|string|max:100',
             'keluhan' => 'required|string',
             'jadwal_booking' => 'required|date',
-            'status' => 'required|in:menunggu,diproses,selesai,dibatalkan',
+            'status' => 'nullable|in:menunggu,diproses,selesai,dibatalkan',
+            'kategori_servis' => 'required|array|min:1',
+            'sparepart_diminta' => 'nullable|array',
         ]);
 
         $data = $request->all();
 
         if (auth()->user()->role === 'pelanggan') {
-            $pelanggan = Pelanggan::where('user_id', auth()->id())->firstOrFail();
+            $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
+            if (!$pelanggan) {
+                return redirect()->back()->withInput()->with('error', 'Silakan lengkapi profil/nomor telepon Anda terlebih dahulu di menu Profile.');
+            }
             $data['pelanggan_id'] = $pelanggan->id;
             $data['user_id'] = auth()->id();
         } else {
@@ -56,6 +65,7 @@ class BookingController extends Controller
             $data['user_id'] = $pelanggan->user_id;
         }
 
+        $data['status'] = $data['status'] ?? 'menunggu';
         $data['status_pembayaran'] = $data['status_pembayaran'] ?? 'belum lunas';
 
         Booking::create($data);
@@ -84,14 +94,16 @@ class BookingController extends Controller
             abort(403);
         }
 
+        $isPelanggan = auth()->user()->role === 'pelanggan';
+
         $request->validate([
-            'pelanggan_id' => 'required|exists:pelanggans,id',
+            'pelanggan_id' => $isPelanggan ? 'nullable' : 'required|exists:pelanggans,id',
             'mekanik_id' => 'nullable|exists:mekaniks,id',
             'plat_nomor' => 'required|string|max:50',
             'tipe_motor' => 'required|string|max:100',
             'keluhan' => 'required|string',
             'jadwal_booking' => 'required|date',
-            'status' => 'required|in:menunggu,diproses,selesai,dibatalkan',
+            'status' => 'nullable|in:menunggu,diproses,selesai,dibatalkan',
             'sparepart_terpakai' => 'nullable|string',
             'catatan_mekanik' => 'nullable|string',
         ]);
@@ -99,7 +111,10 @@ class BookingController extends Controller
         $data = $request->all();
 
         if (auth()->user()->role === 'pelanggan') {
-            $pelanggan = Pelanggan::where('user_id', auth()->id())->firstOrFail();
+            $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
+            if (!$pelanggan) {
+                return redirect()->back()->withInput()->with('error', 'Silakan lengkapi profil/nomor telepon Anda terlebih dahulu di menu Profile.');
+            }
             $data['pelanggan_id'] = $pelanggan->id;
             $data['user_id'] = auth()->id();
         } else {
@@ -107,6 +122,7 @@ class BookingController extends Controller
             $data['user_id'] = $pelanggan->user_id;
         }
 
+        $data['status'] = $data['status'] ?? $booking->status;
         $booking->update($data);
 
         return redirect()->back()->with('success', 'Status dan catatan servis berhasil diupdate!');
