@@ -361,13 +361,15 @@
                         <div class="form-grid">
                             <div class="form-field form-field-full">
                                 <label class="field-label" for="nama">Nama lengkap</label>
-                                <input id="nama" type="text" name="nama" value="{{ old('nama') }}"
-                                    class="form-input" placeholder="Masukkan nama lengkap" required>
+                                <input id="nama" type="text" name="nama"
+                                    value="{{ auth()->check() ? auth()->user()->name : old('nama') }}" class="form-input"
+                                    placeholder="Masukkan nama lengkap" required>
                             </div>
 
                             <div class="form-field">
                                 <label class="field-label" for="no_telp">No. Telp / WhatsApp</label>
-                                <input id="no_telp" type="text" name="no_telp" value="{{ old('no_telp') }}"
+                                <input id="no_telp" type="text" name="no_telp"
+                                    value="{{ $pelanggan && !str_starts_with($pelanggan->no_telp, 'pending-') ? $pelanggan->no_telp : old('no_telp') }}"
                                     class="form-input" placeholder="0812xxxxxxx" required>
                             </div>
 
@@ -395,24 +397,29 @@
                                     @foreach ($services as $layanan)
                                         <label
                                             class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 transition hover:bg-slate-100">
-                                            <input type="checkbox" name="kategori_servis[]" value="{{ $layanan->nama_service }}" data-price="{{ $layanan->harga }}"
+                                            <input type="checkbox" name="kategori_servis[]"
+                                                value="{{ $layanan->nama_service }}" data-price="{{ $layanan->harga }}"
                                                 class="service-checkbox h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                                            <span class="text-sm font-medium text-slate-700">{{ $layanan->nama_service }} (Rp {{ number_format($layanan->harga, 0, ',', '.') }})</span>
+                                            <span class="text-sm font-medium text-slate-700">{{ $layanan->nama_service }}
+                                                (Rp {{ number_format($layanan->harga, 0, ',', '.') }})
+                                            </span>
                                         </label>
                                     @endforeach
-                                    
+
                                     <!-- Opsi Lainnya -->
                                     <label
                                         class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 transition hover:bg-slate-100">
-                                        <input type="checkbox" id="checkbox-lainnya" name="kategori_servis[]" value="Lainnya" data-price="0"
+                                        <input type="checkbox" id="checkbox-lainnya" name="kategori_servis[]"
+                                            value="Lainnya" data-price="0"
                                             class="service-checkbox h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                                         <span class="text-sm font-medium text-slate-700">Lainnya</span>
                                     </label>
                                 </div>
-                                
+
                                 <div id="input-lainnya-container" class="mt-3 hidden">
-                                    <input type="text" id="layanan_lainnya" name="layanan_lainnya" value="{{ old('layanan_lainnya') }}"
-                                        class="form-input" placeholder="Sebutkan layanan lainnya yang Anda butuhkan (Contoh: Ganti aki, dll)">
+                                    <input type="text" id="layanan_lainnya" name="layanan_lainnya"
+                                        value="{{ old('layanan_lainnya') }}" class="form-input"
+                                        placeholder="Sebutkan layanan lainnya yang Anda butuhkan (Contoh: Ganti aki, dll)">
                                 </div>
                             </div>
 
@@ -442,7 +449,9 @@
                                 <div class="rounded-xl border border-blue-200 bg-blue-50/50 p-5">
                                     <p class="text-sm font-bold text-slate-600">Estimasi Biaya</p>
                                     <p class="mt-1 text-3xl font-bold text-blue-700" id="estimasi-biaya">Rp 0</p>
-                                    <p class="mt-2 text-xs text-slate-500">*Ini hanya estimasi kasar berdasarkan layanan & sparepart yang dipilih. Harga akhir bisa menyesuaikan kondisi aktual kendaraan saat diperiksa mekanik.</p>
+                                    <p class="mt-2 text-xs text-slate-500">*Ini hanya estimasi kasar berdasarkan layanan &
+                                        sparepart yang dipilih. Harga akhir bisa menyesuaikan kondisi aktual kendaraan saat
+                                        diperiksa mekanik.</p>
                                 </div>
                             </div>
                         </div>

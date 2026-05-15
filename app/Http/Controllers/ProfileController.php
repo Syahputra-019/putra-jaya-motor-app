@@ -60,12 +60,18 @@ class ProfileController extends Controller
         if ($user->role === 'pelanggan') {
             DB::table('pelanggans')->updateOrInsert(
                 ['user_id' => $user->id],
-                ['no_telp' => $request->no_telp]
+                [
+                    'nama_pelanggan' => $request->name,
+                    'no_telp' => $request->no_telp,
+                ]
             );
         } elseif ($user->role === 'mekanik') {
             DB::table('mekaniks')->updateOrInsert(
                 ['user_id' => $user->id],
-                ['no_telp' => $request->no_telp]
+                [
+                    'nama_mekanik' => $request->name,
+                    'no_telp' => $request->no_telp,
+                ]
             );
         }
 

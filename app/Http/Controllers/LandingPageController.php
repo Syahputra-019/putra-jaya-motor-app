@@ -15,6 +15,7 @@ class LandingPageController extends Controller
     public function index()
     {
         $booking = null;
+        $pelanggan = null;
         $spareparts = Sparepart::orderBy('nama_sparepart', 'asc')->get();
         $services = Service::orderBy('nama_service', 'asc')->get();
 
@@ -28,7 +29,7 @@ class LandingPageController extends Controller
             }
         }
 
-        return view('landing', compact('booking', 'spareparts', 'services'));
+        return view('landing', compact('booking', 'spareparts', 'services', 'pelanggan'));
     }
 
     public function storeBooking(Request $request)
