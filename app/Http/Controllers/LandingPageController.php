@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Pelanggan;
 use App\Models\Sparepart;
 use App\Models\Service;
+use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,9 @@ class LandingPageController extends Controller
         $pelanggan = null;
         $spareparts = Sparepart::orderBy('nama_sparepart', 'asc')->get();
         $services = Service::orderBy('nama_service', 'asc')->get();
+        
+        // Ambil data testimonial yang di-approve, maksimal 10 data terbaru
+        $testimonials = Testimonial::with('user')->where('status', 'approved')->latest()->take(10)->get();
 
         if (auth()->check() && auth()->user()->role === 'pelanggan') {
             $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
@@ -30,7 +34,7 @@ class LandingPageController extends Controller
             }
         }
 
-        return view('landing', compact('booking', 'spareparts', 'services', 'pelanggan'));
+        return view('landing', compact('booking', 'spareparts', 'services', 'pelanggan', 'testimonials'));
     }
 
     public function storeBooking(Request $request)

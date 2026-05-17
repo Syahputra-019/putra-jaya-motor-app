@@ -24,6 +24,15 @@
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
             @apply bg-blue-100 border-blue-200 text-blue-700 rounded-lg px-2 py-0.5 text-xs font-bold !important;
         }
+
+        /* Hide scrollbar for carousel */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 @endsection
 
@@ -254,9 +263,11 @@
                             @if ($booking->transaksi)
                                 <div class="mt-5 flex flex-wrap gap-3">
                                     @if (($booking->transaksi->status_pembayaran ?? null) === 'lunas')
-                                        <a href="{{ route('transaksi.cetak', $booking->transaksi->id) }}" class="btn-secondary">Lihat Nota</a>
+                                        <a href="{{ route('transaksi.cetak', $booking->transaksi->id) }}"
+                                            class="btn-secondary">Lihat Nota</a>
                                     @else
-                                        <a href="{{ route('transaksi.bayar', $booking->transaksi->id) }}" class="btn-primary">Lanjutkan Pembayaran</a>
+                                        <a href="{{ route('transaksi.bayar', $booking->transaksi->id) }}"
+                                            class="btn-primary">Lanjutkan Pembayaran</a>
                                     @endif
                                 </div>
                             @endif
@@ -472,6 +483,81 @@
             </div>
         </div>
     </section>
+
+    {{-- Section Testimonial --}}
+    @if ($testimonials->count() > 0)
+        <section id="testimonial" class="landing-section py-16">
+            <div class="container mx-auto px-4">
+                <div class="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-3xl font-bold text-slate-900">Apa Kata Pelanggan Kami</h2>
+                        <p class="mt-2 text-slate-500">Pengalaman nyata dari pelanggan yang telah mempercayakan motornya kepada kami.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="btn-prev-testimonial" aria-label="Previous"
+                            class="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-blue-50 hover:text-blue-600 hover:shadow-md focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button id="btn-next-testimonial" aria-label="Next"
+                            class="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-blue-50 hover:text-blue-600 hover:shadow-md focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div id="testimonial-container" class="hide-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-8 pt-4">
+                        @foreach ($testimonials as $testi)
+                            <div class="flex w-[85%] shrink-0 snap-center flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333333%-1rem)]">
+                                <div>
+                                    {{-- Rating --}}
+                                    <div class="mb-4 flex items-center gap-1">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            @if ($i <= $testi->rating)
+                                                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            @else
+                                                <svg class="h-5 w-5 text-slate-200" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            @endif
+                                        @endfor
+                                    </div>
+
+                                    {{-- Isi Testimonial --}}
+                                    <p class="mb-8 text-sm italic leading-relaxed text-slate-600">
+                                        "{{ $testi->isi_testimonial }}"
+                                    </p>
+                                </div>
+
+                                {{-- User Info --}}
+                                <div class="mt-auto flex items-center gap-3 border-t border-slate-100 pt-5">
+                                    {{-- Inisial / Foto --}}
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600">
+                                        @if ($testi->user && $testi->user->foto)
+                                            <img src="{{ asset('storage/' . $testi->user->foto) }}" alt="User Image" class="h-full w-full rounded-full object-cover">
+                                        @else
+                                            {{ strtoupper(substr($testi->user->name ?? 'A', 0, 1)) }}
+                                        @endif
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h4 class="truncate text-sm font-semibold text-slate-900">{{ $testi->user->name ?? 'Anonim' }}</h4>
+                                        <p class="text-xs text-slate-500">Pelanggan</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </section>
+    @endif
+
 @endsection
 
 @section('scripts')
@@ -535,6 +621,24 @@
 
             checkboxLainnya.addEventListener('change', toggleInputLainnya);
             toggleInputLainnya(); // Panggil saat awal dimuat (menjaga old input)
+
+            // Carousel / Slider Testimonial Vanilla JS
+            const testimonialContainer = document.getElementById('testimonial-container');
+            const btnPrevTestimonial = document.getElementById('btn-prev-testimonial');
+            const btnNextTestimonial = document.getElementById('btn-next-testimonial');
+
+            if (testimonialContainer && btnPrevTestimonial && btnNextTestimonial) {
+                btnPrevTestimonial.addEventListener('click', () => {
+                    // Scroll sejauh lebar 1 elemen pertama beserta gap-nya (24px = gap-6)
+                    const scrollAmount = testimonialContainer.firstElementChild.offsetWidth + 24; 
+                    testimonialContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                });
+
+                btnNextTestimonial.addEventListener('click', () => {
+                    const scrollAmount = testimonialContainer.firstElementChild.offsetWidth + 24; 
+                    testimonialContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                });
+            }
         });
     </script>
 @endsection

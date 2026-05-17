@@ -11,6 +11,7 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SparepartController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TransaksiController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/data-komplain', [KomplainController::class, 'adminIndex'])->name('pelanggan.komplain.index');
         Route::post('/komplain/{id}/tanggapi', [KomplainController::class, 'tanggapi'])->name('komplain.tanggapi');
+        Route::get('/testimonial', [TestimonialController::class, 'index'])->name('admin.testimonial.index');
+        Route::patch('/testimonial/{id}/status', [TestimonialController::class, 'updateStatus'])->name('admin.testimonial.updateStatus');
+        Route::delete('/testimonial/{id}', [TestimonialController::class, 'destroy'])->name('admin.testimonial.destroy');
     });
 
     Route::middleware(['role:mekanik'])->group(function () {
@@ -60,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/booking/{booking}/konfirmasi-rekomendasi', [BookingController::class, 'konfirmasiRekomendasi'])->name('booking.konfirmasi_rekomendasi');
         Route::resource('komplain', KomplainController::class);
         Route::get('/riwayat-servis', [TransaksiController::class, 'riwayatServis'])->name('pelanggan.riwayat');
+        Route::get('/beri-testimonial', [TestimonialController::class, 'create'])->name('testimonial.create');
+        Route::post('/beri-testimonial', [TestimonialController::class, 'store'])->name('testimonial.store');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -29,7 +29,8 @@
                                 class="sidebar-brand-mark object-cover">
                         </div>
                         <div>
-                            <div class="text-sm font-bold uppercase tracking-[0.24em] text-slate-950">Putra Jaya Motor</div>
+                            <div class="text-sm font-bold uppercase tracking-[0.24em] text-slate-950">Putra Jaya Motor
+                            </div>
                         </div>
                     </a>
                 </div>
@@ -42,6 +43,8 @@
                         class="text-sm font-semibold text-slate-700 transition hover:text-blue-600">Layanan</a>
                     <a href="{{ route('landing') }}#booking"
                         class="text-sm font-semibold text-slate-700 transition hover:text-blue-600">Booking</a>
+                    <a href="{{ route('landing') }}#testimonial"
+                        class="text-sm font-semibold text-slate-700 transition hover:text-blue-600">Testimonial</a>
                 </div>
 
                 {{-- Right: Auth Actions & Mobile Toggle --}}
@@ -54,8 +57,7 @@
 
                                     @if ($currentUser->foto)
                                         <img src="{{ asset('storage/' . $currentUser->foto) }}"
-                                            alt="Foto {{ $currentUser->name }}"
-                                            class="h-9 w-9 rounded-full object-cover">
+                                            alt="Foto {{ $currentUser->name }}" class="h-9 w-9 rounded-full object-cover">
                                     @else
                                         <div
                                             class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">
@@ -126,6 +128,18 @@
 
                                     <div class="my-1 border-t border-slate-100"></div>
 
+                                    <a href="{{ route('testimonial.create') }}"
+                                        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
+                                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                        </svg>
+                                        Ulasan Kami
+                                    </a>
+
+                                    <div class="my-1 border-t border-slate-100"></div>
+
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
                                         <button type="submit"
@@ -187,6 +201,9 @@
                                 <a href="{{ route('komplain.index') }}"
                                     class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Daftar
                                     Komplain</a>
+                                <a href="{{ route('testimonial.create') }}"
+                                    class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Ulasan
+                                    Kami</a>
                                 <form action="{{ route('logout') }}" method="POST" class="mt-2">
                                     @csrf
                                     <button type="submit"
@@ -212,7 +229,7 @@
         </main>
 
         {{-- Footer --}}
-        <footer class="mt-16 border-t border-slate-200 bg-white/70 py-10 backdrop-blur lg:py-16">
+        <footer class="border-t border-slate-200 bg-white/70 py-10 backdrop-blur lg:py-16">
             <div class="container mx-auto px-4">
                 <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
                     {{-- Info Bengkel --}}
@@ -258,7 +275,7 @@
                         <h4 class="mb-4 text-sm font-bold text-slate-900">Lokasi Bengkel</h4>
                         <div class="h-32 w-full overflow-hidden rounded-xl bg-slate-100">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.52163931653!2d106.822746314769!3d-6.194449095515002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMTEnNDAuMCJTIDEwNsKwNDknMjkuOCJF!5e0!3m2!1sid!2sid!4v1620000000000!5m2!1sid!2sid"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3951.7011317222677!2d112.6256784!3d-7.926251799999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd629fc0037be71%3A0x9574a348acee40bd!2sPutra%20Jaya%20Motor!5e0!3m2!1sid!2sid!4v1779044397334!5m2!1sid!2sid"
                                 width="100%" height="100%" style="border:0;" allowfullscreen=""
                                 loading="lazy"></iframe>
                         </div>

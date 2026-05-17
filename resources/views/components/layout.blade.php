@@ -29,12 +29,19 @@
             ['label' => 'Kasir & Transaksi', 'route' => 'transaksi.index', 'patterns' => ['transaksi.*']],
             ['label' => 'Laporan', 'route' => 'laporan.index', 'patterns' => ['laporan.*']],
             ['label' => 'Komplain Pelanggan', 'route' => 'pelanggan.komplain.index', 'patterns' => ['pelanggan.komplain.*']],
+            ['label' => 'Testimonial', 'route' => 'admin.testimonial.index', 'patterns' => ['admin.testimonial.*']],
         ];
     }
 
     if ($user && in_array($user->role, ['admin', 'pelanggan'])) {
         $navigation['Booking'] = [
             ['label' => 'Antrean Booking', 'route' => 'booking.index', 'patterns' => ['booking.*']],
+        ];
+    }
+
+    if ($user && $user->role === 'pelanggan') {
+        $navigation['Ulasan'] = [
+            ['label' => 'Beri Testimonial', 'route' => 'testimonial.create', 'patterns' => ['testimonial.*']],
         ];
     }
 
