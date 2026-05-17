@@ -1,90 +1,73 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('components.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajukan Komplain - Putra Jaya Motor</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
+@section('title', 'Buat Komplain')
 
-<body class="bg-slate-50 text-slate-800 antialiased">
+@section('content')
+    <section class="py-10">
+        <div class="container mx-auto max-w-4xl px-4">
+            <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="page-kicker">After Service Support</p>
+                    <h1 class="mt-2 text-3xl font-bold text-slate-950">Ajukan komplain</h1>
+                    <p class="mt-2 text-sm leading-6 text-slate-500">Kalau ada kendala setelah servis, jelaskan detailnya
+                        di sini agar tim bengkel bisa menindaklanjuti lebih cepat.</p>
+                </div>
+                <a href="{{ route('komplain.index') }}" class="btn-secondary">Riwayat Komplain</a>
+            </div>
 
-    <nav class="border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
-        <div class="mx-auto flex max-w-3xl items-center justify-between">
-            <a href="{{ route('landing') }}" class="flex items-center gap-2 text-xl font-black text-blue-600">
-                <span class="text-2xl">🏍️</span> PJM Bengkel
-            </a>
-            <a href="{{ route('komplain.index') }}"
-                class="text-sm font-bold text-slate-500 transition hover:text-blue-600">
-                Riwayat Komplain Saya
-            </a>
-        </div>
-    </nav>
-
-    <div class="mx-auto max-w-3xl px-4 py-10">
-        <div class="rounded-3xl border border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/50">
-            <h2 class="mb-2 text-3xl font-black text-slate-800">Ada kendala pasca servis? 🛠️</h2>
-            <p class="mb-8 text-slate-500">Tenang mas bro, kasih tau mekanik kita di sini. Kepuasan pelanggan nomor satu
-                buat Putra Jaya Motor!</p>
-
-            <form action="{{ route('komplain.store') }}" method="POST" enctype="multipart/form-data">
+            <div class="rounded-[32px] border border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/50">
                 @if ($errors->any())
-                    <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4">
-                        <ul class="list-disc pl-5 text-sm font-bold text-rose-600">
+                    <div class="alert alert-danger mb-6">
+                        <div class="font-black">!</div>
+                        <div>
                             @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
+                                <div>{{ $error }}</div>
                             @endforeach
-                        </ul>
+                        </div>
                     </div>
                 @endif
-                @csrf
 
-                <div class="mb-6">
-                    <label class="mb-2 block text-sm font-bold text-slate-700">Pilih Riwayat Servis</label>
-                    <select name="booking_id"
-                        class="w-full rounded-2xl border-slate-200 bg-slate-50 p-4 text-sm focus:ring-blue-500"
-                        required>
-                        <option value="">-- Pilih Servis yang Dikomplain --</option>
-                        @foreach ($bookings as $item)
-                            <option value="{{ $item->id }}">
-                                {{ \Carbon\Carbon::parse($item->tanggal_booking)->format('d M Y') }} -
-                                {{ $item->tipe_motor }} ({{ $item->plat_nomor }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <p class="mt-2 text-xs text-slate-400">*Hanya menampilkan riwayat servis yang sudah lunas/selesai.
-                    </p>
-                </div>
+                <form action="{{ route('komplain.store') }}" method="POST" enctype="multipart/form-data"
+                    class="space-y-6">
+                    @csrf
 
-                <div class="mb-6">
-                    <label class="mb-2 block font-bold text-slate-700">Jelaskan Kendalanya <span
-                            class="text-rose-500">*</span></label>
-                    <textarea name="deskripsi_komplain" rows="5"
-                        class="w-full rounded-xl border-slate-200 bg-slate-50 p-4 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                        placeholder="Contoh: Mas, habis ganti kampas rem kemarin kok sekarang rem depannya agak blong ya kalau lagi kenceng..."
-                        required></textarea>
-                </div>
+                    <div class="form-field">
+                        <label class="field-label" for="booking_id">Pilih riwayat servis</label>
+                        <select id="booking_id" name="booking_id"
+                            class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm text-slate-900 ring-1 ring-inset ring-slate-200 transition-colors hover:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900"
+                            required>
+                            <option value="">-- Pilih servis yang dikomplain --</option>
+                            @foreach ($bookings as $item)
+                                <option value="{{ $item->id }}">
+                                    {{ \Carbon\Carbon::parse($item->jadwal_booking)->format('d M Y') }} -
+                                    {{ $item->tipe_motor }} ({{ $item->plat_nomor }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="mt-2 text-xs leading-5 text-slate-500">Hanya riwayat servis yang sudah selesai yang
+                            ditampilkan di sini.</p>
+                    </div>
 
-                <div class="mb-8">
-                    <label class="mb-2 block font-bold text-slate-700">Foto Bukti / Kendala <span
-                            class="font-normal text-slate-400">(Opsional)</span></label>
-                    <input type="file" name="foto_bukti" accept="image/*"
-                        class="w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100">
-                </div>
+                    <div class="form-field">
+                        <label class="field-label" for="deskripsi_komplain">Jelaskan kendalanya</label>
+                        <textarea id="deskripsi_komplain" name="deskripsi_komplain" rows="6"
+                            class="form-textarea min-h-[160px]" placeholder="Contoh: Setelah ganti kampas rem, rem depan terasa kurang pakem saat dipakai..." required>{{ old('deskripsi_komplain') }}</textarea>
+                    </div>
 
-                <div class="flex gap-4">
-                    <a href="{{ route('landing') }}"
-                        class="w-1/3 rounded-xl bg-slate-100 py-4 text-center font-bold text-slate-500 transition hover:bg-slate-200">Batal</a>
-                    <button type="submit"
-                        class="w-2/3 rounded-xl bg-blue-600 py-4 font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-700">
-                        Kirim Komplain
-                    </button>
-                </div>
-            </form>
+                    <div class="form-field">
+                        <label class="field-label" for="foto_bukti">Foto bukti / kendala</label>
+                        <input id="foto_bukti" type="file" name="foto_bukti" accept="image/*"
+                            class="block w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-slate-800">
+                        <p class="mt-2 text-xs leading-5 text-slate-500">Opsional, tapi sangat membantu untuk
+                            memperjelas kondisi motor.</p>
+                    </div>
+
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                        <a href="{{ route('komplain.index') }}" class="btn-secondary text-center">Batal</a>
+                        <button type="submit" class="btn-primary">Kirim Komplain</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-</body>
-
-</html>
+    </section>
+@endsection

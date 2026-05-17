@@ -153,4 +153,36 @@ class BookingController extends Controller
         return view('booking.my_booking', compact('booking'));
     }
 
+    public function konfirmasiRekomendasi(Request $request, Booking $booking)
+    {
+        // Pastikan booking ini milik user yang sedang login
+        if (auth()->user()->role === 'pelanggan' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'status_konfirmasi' => 'required|in:approved,rejected'
+        ]);
+
+        $booking->update([
+            'status_konfirmasi' => $request->status_konfirmasi
+        ]);
+
+        // Jika disetujui, gabungkan daftar rekomendasi ke sparepart_diminta
+        if ($request->status_konfirmasi === 'approved') {
+            $rekomendasi = $booking->rekomendasi_sparepart ?? [];
+            $sparepartDiminta = $booking->sparepart_diminta ?? [];
+            
+            foreach ($rekomendasi as $rek) {
+                if (!in_array($rek['nama'], $sparepartDiminta)) {
+                    $sparepartDiminta[] = $rek['nama'];
+                }
+            }
+            
+            $booking->update(['sparepart_diminta' => $sparepartDiminta]);
+        }
+
+        $pesan = $request->status_konfirmasi === 'approved' ? 'Mantap! Anda telah menyetujui rekomendasi perbaikan.' : 'Anda telah menolak rekomendasi perbaikan.';
+        return redirect()->back()->with('success', $pesan);
+    }
 }

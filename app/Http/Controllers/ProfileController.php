@@ -24,6 +24,10 @@ class ProfileController extends Controller
             $no_telp = $data ? $data->no_telp : '';
         }
 
+        if ($user->role === 'pelanggan') {
+            return view('profile.customer', compact('user', 'no_telp'));
+        }
+
         return view('profile.index', compact('user', 'no_telp'));
     }
 

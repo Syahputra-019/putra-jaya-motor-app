@@ -10,6 +10,12 @@
     @yield('styles')
 </head>
 
+@php
+    $currentUser = Auth::user();
+    $isPelanggan = $currentUser?->role === 'pelanggan';
+    $firstName = $currentUser ? explode(' ', trim($currentUser->name))[0] : '';
+@endphp
+
 <body class="bg-slate-50 font-sans text-slate-800 antialiased">
     <div x-data="{ mobileMenu: false }">
         {{-- Navbar --}}
@@ -39,25 +45,29 @@
                 </div>
 
                 {{-- Right: Auth Actions & Mobile Toggle --}}
-                <div class="flex items-center justify-end lg:w-1/4">
-                    {{-- Desktop Auth --}}
-                    <div class="hidden lg:block">
+                <div class="flex items-center justify-end gap-3 lg:w-1/4">
                     @auth
-                        @if (Auth::user()->role === 'pelanggan')
+                        @if ($isPelanggan)
                             <div class="relative" x-data="{ openProfile: false }">
                                 <button @click="openProfile = !openProfile" @click.away="openProfile = false"
-                                    class="flex items-center gap-3 rounded-full border border-slate-200 bg-white p-1.5 pr-4 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    class="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 pr-2 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:gap-3 sm:pr-4">
 
-                                    <div
-                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                    </div>
+                                    @if ($currentUser->foto)
+                                        <img src="{{ asset('storage/' . $currentUser->foto) }}"
+                                            alt="Foto {{ $currentUser->name }}"
+                                            class="h-9 w-9 rounded-full object-cover">
+                                    @else
+                                        <div
+                                            class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">
+                                            {{ strtoupper(substr($currentUser->name, 0, 1)) }}
+                                        </div>
+                                    @endif
 
-                                    <span class="text-sm font-semibold text-slate-700">
-                                        {{ explode(' ', Auth::user()->name)[0] }}
+                                    <span class="hidden text-sm font-semibold text-slate-700 sm:block">
+                                        {{ $firstName }}
                                     </span>
 
-                                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
+                                    <svg class="hidden h-4 w-4 text-slate-400 transition-transform duration-200 sm:block"
                                         :class="openProfile ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -66,7 +76,7 @@
                                 </button>
 
                                 <div x-show="openProfile" x-transition.opacity.duration.200ms
-                                    class="absolute right-0 z-50 mt-3 w-64 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
+                                    class="absolute right-0 z-50 mt-3 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
                                     style="display: none;">
 
                                     <div class="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">Akun
@@ -132,14 +142,13 @@
                             </div>
                         @endif
                     @else
-                        <div class="flex items-center gap-3">
+                        <div class="hidden items-center gap-3 lg:flex">
                             <a href="{{ route('login') }}"
                                 class="text-sm font-bold text-slate-700 transition hover:text-blue-600">Login</a>
                             <a href="{{ route('register') }}"
                                 class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30">Daftar</a>
                         </div>
                     @endauth
-                    </div>
 
                     {{-- Mobile Menu Button --}}
                     <button type="button"

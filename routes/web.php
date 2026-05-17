@@ -51,11 +51,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:mekanik'])->group(function () {
         Route::get('/jadwal-mekanik', [MekanikController::class, 'jadwalKerja'])->name('mekanik.jadwal');
         Route::put('/mekanik/jadwal/{booking}/update', [MekanikController::class, 'updateStatus'])->name('mekanik.jadwal.update');
+        Route::post('/mekanik/jadwal/{booking}/rekomendasi', [MekanikController::class, 'kirimRekomendasi'])->name('mekanik.jadwal.rekomendasi');
     });
 
     Route::middleware(['role:pelanggan'])->group(function () {
         Route::resource('/booking', BookingController::class);
         Route::get('/my-booking', [BookingController::class, 'myBooking'])->name('booking.mine');
+        Route::post('/booking/{booking}/konfirmasi-rekomendasi', [BookingController::class, 'konfirmasiRekomendasi'])->name('booking.konfirmasi_rekomendasi');
         Route::resource('komplain', KomplainController::class);
         Route::get('/riwayat-servis', [TransaksiController::class, 'riwayatServis'])->name('pelanggan.riwayat');
     });

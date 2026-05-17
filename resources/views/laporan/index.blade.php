@@ -50,7 +50,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($transaksis as $t)
+                        @forelse ($transaksis as $t)
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($t->tanggal)->format('d M Y') }}</td>
                                 <td class="font-semibold text-[color:var(--brand-navy-800)]">{{ $t->kode_transaksi }}</td>

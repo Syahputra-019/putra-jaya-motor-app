@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Mekanik;
+use App\Models\Sparepart;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class MekanikController extends Controller
 {
@@ -102,41 +104,45 @@ class MekanikController extends Controller
         return redirect()->route('mekanik.index')->with('success', 'Mekanik berhasil dihapus.');
     }
 
-public function jadwalKerja()
-{
-    // Ambil data user yang lagi login
-    $user = auth()->user();
+    public function jadwalKerja()
+    {
+        // Ambil data user yang lagi login
+        $user = auth()->user();
+        $spareparts = Sparepart::query()
+            ->where('stok', '>', 0)
+            ->orderBy('nama_sparepart', 'asc')
+            ->get(['id', 'nama_sparepart', 'stok', 'harga']);
 
-    // 1. CEK JIKA YANG LOGIN ADALAH ADMIN
-    if ($user->role === 'admin') {
-        // Admin bisa lihat SEMUA motor yang lagi antre & diproses oleh SEMUA mekanik
-        $bookings = Booking::with(['pelanggan', 'mekanik'])
-                    ->whereIn('status', ['menunggu', 'diproses'])
-                    ->orderBy('jadwal_booking', 'asc')
-                    ->get();
-                    
-        return view('mekanik.jadwal', compact('bookings'));
-    }
-
-    // 2. JIKA YANG LOGIN ADALAH MEKANIK
-    $mekanik = Mekanik::where('user_id', $user->id)->first();
-
-    if (!$mekanik) {
-        return view('mekanik.jadwal', ['bookings' => collect([])])
-               ->with('error', 'Akun login lu belum disambungkan ke data mekanik.');
-    }
-
-    // 2. Ambil booking yang ditugaskan ke ID mekanik tersebut
-    $bookings = Booking::with('pelanggan')
-                ->where('mekanik_id', $mekanik->id)
+        // 1. CEK JIKA YANG LOGIN ADALAH ADMIN
+        if ($user->role === 'admin') {
+            // Admin bisa lihat SEMUA motor yang lagi antre & diproses oleh SEMUA mekanik
+            $bookings = Booking::with(['pelanggan', 'mekanik'])
                 ->whereIn('status', ['menunggu', 'diproses'])
                 ->orderBy('jadwal_booking', 'asc')
                 ->get();
 
-    return view('mekanik.jadwal', compact('bookings'));
-}
+            return view('mekanik.jadwal', compact('bookings', 'spareparts'));
+        }
 
-public function updateStatus(Request $request, Booking $booking)
+        // 2. JIKA YANG LOGIN ADALAH MEKANIK
+        $mekanik = Mekanik::where('user_id', $user->id)->first();
+
+        if (!$mekanik) {
+            return view('mekanik.jadwal', ['bookings' => collect([]), 'spareparts' => $spareparts])
+                ->with('error', 'Akun login lu belum disambungkan ke data mekanik.');
+        }
+
+        // 2. Ambil booking yang ditugaskan ke ID mekanik tersebut
+        $bookings = Booking::with('pelanggan')
+            ->where('mekanik_id', $mekanik->id)
+            ->whereIn('status', ['menunggu', 'diproses'])
+            ->orderBy('jadwal_booking', 'asc')
+            ->get();
+
+        return view('mekanik.jadwal', compact('bookings', 'spareparts'));
+    }
+
+    public function updateStatus(Request $request, Booking $booking)
     {
         $mekanik = Mekanik::where('user_id', auth()->id())->first();
 
@@ -161,4 +167,128 @@ public function updateStatus(Request $request, Booking $booking)
         return redirect()->back()->with('success', 'Mantap! Status motor berhasil diupdate.');
     }
 
+    public function kirimRekomendasi(Request $request, Booking $booking)
+    {
+        $mekanik = Mekanik::where('user_id', auth()->id())->first();
+
+        if (auth()->user()->role === 'mekanik' && (!$mekanik || $booking->mekanik_id !== $mekanik->id)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'sparepart_id' => 'nullable|array',
+            'sparepart_id.*' => 'nullable|exists:spareparts,id',
+            'jumlah' => 'nullable|array',
+            'jumlah.*' => 'nullable|integer|min:1',
+            'nama_part_luar' => 'nullable|array',
+            'nama_part_luar.*' => 'nullable|string|max:255',
+            'harga_part_luar' => 'nullable|array',
+            'harga_part_luar.*' => 'nullable|numeric|min:0',
+            'jumlah_luar' => 'nullable|array',
+            'jumlah_luar.*' => 'nullable|integer|min:1',
+        ]);
+
+        $rekomendasiBaru = [];
+
+        foreach ($request->input('sparepart_id', []) as $index => $id) {
+            if (blank($id)) {
+                continue;
+            }
+
+            $sparepart = Sparepart::find($id);
+            $jumlah = (int) ($request->input("jumlah.$index") ?? 0);
+
+            if (!$sparepart || $jumlah < 1) {
+                continue;
+            }
+
+            $rekomendasiBaru[] = [
+                'id' => $sparepart->id,
+                'nama' => $sparepart->nama_sparepart,
+                'harga' => (int) $sparepart->harga,
+                'jumlah' => $jumlah,
+                'tipe' => 'bengkel',
+            ];
+        }
+
+        foreach ($request->input('nama_part_luar', []) as $index => $namaPartLuar) {
+            $namaPartLuar = trim((string) $namaPartLuar);
+
+            if ($namaPartLuar === '') {
+                continue;
+            }
+
+            $harga = (int) ($request->input("harga_part_luar.$index") ?? 0);
+            $jumlah = (int) ($request->input("jumlah_luar.$index") ?? 0);
+
+            if ($jumlah < 1 || $harga < 0) {
+                continue;
+            }
+
+            $rekomendasiBaru[] = [
+                'id' => null,
+                'nama' => $namaPartLuar,
+                'harga' => $harga,
+                'jumlah' => $jumlah,
+                'tipe' => 'custom',
+            ];
+        }
+
+        if (empty($rekomendasiBaru)) {
+            throw ValidationException::withMessages([
+                'rekomendasi' => 'Tambahkan minimal satu sparepart bengkel atau part luar sebelum mengirim rekomendasi.',
+            ]);
+        }
+
+        $rekomendasiGabungan = $this->gabungkanRekomendasi(
+            $booking->rekomendasi_sparepart ?? [],
+            $rekomendasiBaru,
+        );
+
+        $booking->update([
+            'rekomendasi_sparepart' => $rekomendasiGabungan,
+            'status_konfirmasi' => 'pending',
+        ]);
+
+        return redirect()->back()->with('success', 'Rekomendasi perbaikan berhasil dikirim ke pelanggan.');
+    }
+
+    private function gabungkanRekomendasi(array $rekomendasiSaatIni, array $rekomendasiBaru): array
+    {
+        $hasil = [];
+
+        foreach (array_merge($rekomendasiSaatIni, $rekomendasiBaru) as $item) {
+            $data = [
+                'id' => $item['id'] ?? null,
+                'nama' => $item['nama'] ?? '',
+                'harga' => (int) ($item['harga'] ?? 0),
+                'jumlah' => (int) ($item['jumlah'] ?? 0),
+                'tipe' => $item['tipe'] ?? (($item['id'] ?? null) ? 'bengkel' : 'custom'),
+            ];
+
+            if ($data['nama'] === '' || $data['jumlah'] < 1) {
+                continue;
+            }
+
+            $kunci = $this->buatKunciRekomendasi($data);
+
+            if (isset($hasil[$kunci])) {
+                $hasil[$kunci]['jumlah'] += $data['jumlah'];
+                continue;
+            }
+
+            $hasil[$kunci] = $data;
+        }
+
+        return array_values($hasil);
+    }
+
+    private function buatKunciRekomendasi(array $item): string
+    {
+        if (!empty($item['id'])) {
+            return 'sparepart:' . $item['id'];
+        }
+
+        return 'custom:' . Str::lower(trim($item['nama'])) . ':' . (int) ($item['harga'] ?? 0);
+    }
 }

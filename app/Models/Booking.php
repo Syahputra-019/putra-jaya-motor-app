@@ -24,12 +24,15 @@ class Booking extends Model
         'status_pembayaran',
         'sparepart_terpakai',
         'catatan_mekanik',
+        'rekomendasi_sparepart',
+        'status_konfirmasi',
     ];
 
     // Casting array ke JSON dan sebaliknya secara otomatis
     protected $casts = [
         'kategori_servis' => 'array',
         'sparepart_diminta' => 'array',
+        'rekomendasi_sparepart' => 'array',
         'jadwal_booking' => 'datetime',
     ];
 
