@@ -219,23 +219,24 @@
 
             <h2 class="section-title">Rincian Transaksi</h2>
 
-            @if ($transaksi->service)
+            @foreach ($transaksi->line_items as $item)
                 <div class="item">
                     <div>
-                        <div class="item-name">{{ $transaksi->service->nama_service }}</div>
-                        <div class="item-note">Jasa servis</div>
+                        <div class="item-name">{{ $item['nama'] }}</div>
+                        <div class="item-note">
+                            @if ($item['jenis'] === 'service')
+                                Jasa servis
+                            @elseif ($item['jenis'] === 'sparepart')
+                                Sparepart bengkel
+                            @elseif ($item['jenis'] === 'custom_service')
+                                Jasa custom
+                            @else
+                                Part luar / item manual
+                            @endif
+                            · {{ $item['jumlah'] }} x Rp {{ number_format($item['harga'], 0, ',', '.') }}
+                        </div>
                     </div>
-                    <div>Rp {{ number_format($transaksi->service->harga, 0, ',', '.') }}</div>
-                </div>
-            @endif
-
-            @foreach ($transaksi->detailTransaksis as $detail)
-                <div class="item">
-                    <div>
-                        <div class="item-name">{{ $detail->sparepart->nama_sparepart }}</div>
-                        <div class="item-note">{{ $detail->jumlah }} x Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</div>
-                    </div>
-                    <div>Rp {{ number_format($detail->sub_total, 0, ',', '.') }}</div>
+                    <div>Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</div>
                 </div>
             @endforeach
 

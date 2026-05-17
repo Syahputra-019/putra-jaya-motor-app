@@ -250,6 +250,16 @@
                                     Status booking belum tersedia atau sudah dibatalkan.
                                 @endif
                             </div>
+
+                            @if ($booking->transaksi)
+                                <div class="mt-5 flex flex-wrap gap-3">
+                                    @if (($booking->transaksi->status_pembayaran ?? null) === 'lunas')
+                                        <a href="{{ route('transaksi.cetak', $booking->transaksi->id) }}" class="btn-secondary">Lihat Nota</a>
+                                    @else
+                                        <a href="{{ route('transaksi.bayar', $booking->transaksi->id) }}" class="btn-primary">Lanjutkan Pembayaran</a>
+                                    @endif
+                                </div>
+                            @endif
                         @else
                             <div class="empty-state mt-6">
                                 <div class="empty-state-icon">P</div>

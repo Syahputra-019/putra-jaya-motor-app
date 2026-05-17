@@ -34,98 +34,180 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div class="surface-card">
-                <div class="feature-icon">M</div>
-                <h2 class="mt-5 text-2xl font-bold text-slate-950">Bayar otomatis</h2>
-                <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan lewat QRIS,
-                    virtual account, e-wallet, dan metode digital lain.</p>
-                <button id="pay-button" class="btn-primary mt-8 w-full">Bayar Sekarang via Midtrans</button>
+        @if (session('success'))
+            <div class="alert alert-success">
+                <div class="font-black">OK</div>
+                <div>{{ session('success') }}</div>
             </div>
+        @endif
 
+        @if (session('error'))
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>{{ session('error') }}</div>
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div class="surface-card">
-                <div class="feature-icon">T</div>
-                <h2 class="mt-5 text-2xl font-bold text-slate-950">Transfer manual</h2>
-                <p class="mt-3 text-sm leading-7 text-slate-500">Transfer ke rekening yang tersedia, lalu unggah bukti
-                    pembayaran agar admin bisa melakukan konfirmasi.</p>
-
-                <div
-                    class="mt-6 rounded-[24px] border border-slate-100 bg-slate-50/80 p-4 text-sm leading-7 text-slate-600">
-                    BCA 123456789 a.n. Putra Jaya Motor
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="page-kicker">Rincian Tagihan</p>
+                        <h2 class="mt-2 text-2xl font-bold text-slate-950">Item transaksi yang akan dibayar</h2>
+                    </div>
+                    <span class="badge badge-info">{{ $transaksi->line_items->count() }} item</span>
                 </div>
 
-                <form action="{{ route('transaksi.uploadStruk', $transaksi->id) }}" method="POST"
-                    enctype="multipart/form-data" class="form-shell mt-6">
-                    @csrf
-                    <div class="form-field">
-                        <label class="field-label" for="bukti_struk">Upload bukti transfer</label>
-                        <input id="bukti_struk" type="file" name="bukti_struk" accept="image/*" required
-                            class="form-input file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white">
+                <div class="mt-6 space-y-3">
+                    @foreach ($transaksi->line_items as $item)
+                        <div
+                            class="flex items-start justify-between gap-4 rounded-[20px] border border-slate-100 bg-slate-50/80 p-4">
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ $item['nama'] }}</div>
+                                <div class="mt-1 text-sm leading-6 text-slate-500">
+                                    @if ($item['jenis'] === 'service')
+                                        Jasa servis
+                                    @elseif ($item['jenis'] === 'sparepart')
+                                        Sparepart bengkel
+                                    @elseif ($item['jenis'] === 'custom_service')
+                                        Jasa custom
+                                    @else
+                                        Part luar / item manual
+                                    @endif
+                                    - {{ $item['jumlah'] }} x Rp {{ number_format($item['harga'], 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <div class="text-right font-semibold text-slate-900">
+                                Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                @if ($transaksi->status_pembayaran === 'belum_bayar')
+                    @if ($midtransEnabled && $transaksi->snap_token)
+                        <div class="surface-card">
+                            <div class="feature-icon">M</div>
+                            <h2 class="mt-5 text-2xl font-bold text-slate-950">Bayar otomatis</h2>
+                            <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan lewat
+                                QRIS, virtual account, e-wallet, dan metode digital lain.</p>
+                            <button id="pay-button" class="btn-primary mt-8 w-full">Bayar Sekarang via Midtrans</button>
+                        </div>
+                    @else
+                        <div class="surface-card">
+                            <div class="feature-icon">M</div>
+                            <h2 class="mt-5 text-2xl font-bold text-slate-950">Pembayaran otomatis belum aktif</h2>
+                            <p class="mt-3 text-sm leading-7 text-slate-500">Midtrans belum tersedia untuk transaksi ini, jadi pembayaran tetap bisa dilanjutkan lewat transfer manual.</p>
+                        </div>
+                    @endif
+
+                    <div class="surface-card">
+                        <div class="feature-icon">T</div>
+                        <h2 class="mt-5 text-2xl font-bold text-slate-950">Transfer manual</h2>
+                        <p class="mt-3 text-sm leading-7 text-slate-500">Transfer ke rekening yang tersedia, lalu unggah
+                            bukti pembayaran agar admin bisa melakukan konfirmasi.</p>
+
+                        <div
+                            class="mt-6 rounded-[24px] border border-slate-100 bg-slate-50/80 p-4 text-sm leading-7 text-slate-600">
+                            BCA 123456789 a.n. Putra Jaya Motor
+                        </div>
+
+                        <form action="{{ route('transaksi.uploadStruk', $transaksi->id) }}" method="POST"
+                            enctype="multipart/form-data" class="form-shell mt-6">
+                            @csrf
+                            <div class="form-field">
+                                <label class="field-label" for="bukti_struk">Upload bukti transfer</label>
+                                <input id="bukti_struk" type="file" name="bukti_struk" accept="image/*" required
+                                    class="form-input file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white">
+                            </div>
+                            <button type="submit" class="btn-accent w-full">Kirim Bukti Transfer</button>
+                        </form>
                     </div>
-                    <button type="submit" class="btn-accent w-full">Kirim Bukti Transfer</button>
-                </form>
+                @elseif ($transaksi->status_pembayaran === 'menunggu_konfirmasi')
+                    <div class="surface-card">
+                        <div class="feature-icon">T</div>
+                        <h2 class="mt-5 text-2xl font-bold text-slate-950">Menunggu Konfirmasi Admin</h2>
+                        <p class="mt-3 text-sm leading-7 text-slate-500">Bukti transfer sudah diterima. Admin akan
+                            memverifikasi pembayaran Anda sebelum nota dinyatakan lunas.</p>
+                        <a href="{{ route('transaksi.cetak', $transaksi->id) }}"
+                            class="btn-secondary mt-8 inline-flex w-full justify-center">Lihat Nota Sementara</a>
+                    </div>
+                @else
+                    <div class="surface-card">
+                        <div class="feature-icon">OK</div>
+                        <h2 class="mt-5 text-2xl font-bold text-slate-950">Pembayaran Sudah Lunas</h2>
+                        <p class="mt-3 text-sm leading-7 text-slate-500">Transaksi ini sudah selesai. Anda bisa langsung
+                            membuka nota digital kapan saja.</p>
+                        <a href="{{ route('transaksi.cetak', $transaksi->id) }}"
+                            class="btn-primary mt-8 inline-flex w-full justify-center">Lihat Nota</a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
-    <script>
-        document.getElementById('pay-button').onclick = function() {
-            // 1. MUNCULIN LOADING SEBELUM MANGGIL MIDTRANS
-            Swal.fire({
-                title: 'Menghubungkan ke Midtrans...',
-                text: 'Mohon tunggu sebentar, sedang menyiapkan halaman pembayaran.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading() // Ini buat bikin spinner muter-muter
-                }
-            });
+    @if ($midtransEnabled && $transaksi->snap_token)
+        <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+        <script>
+            const payButton = document.getElementById('pay-button');
 
-            snap.pay('{{ $transaksi->snap_token }}', {
-                onSuccess: function(result) {
-                    // SWAL ini otomatis nutup loading yang di atas tadi
+            if (payButton) {
+                payButton.onclick = function() {
                     Swal.fire({
-                        title: 'Pembayaran Berhasil!',
-                        text: 'Terima kasih, pembayaran telah kami terima.',
-                        icon: 'success',
-                        confirmButtonColor: '#0d1f3a',
-                        confirmButtonText: 'Lihat Struk'
-                    }).then((swalResult) => {
-                        window.location.href = "{{ route('transaksi.cetak', $transaksi->id) }}";
+                        title: 'Menghubungkan ke Midtrans...',
+                        text: 'Mohon tunggu sebentar, sedang menyiapkan halaman pembayaran.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
                     });
-                },
-                onPending: function(result) {
-                    Swal.fire({
-                        title: 'Menunggu Pembayaran',
-                        text: 'Silakan selesaikan instruksi pembayaran Anda.',
-                        icon: 'info',
-                        confirmButtonColor: '#0d1f3a',
-                        confirmButtonText: 'Tutup'
-                    });
-                },
-                onError: function(result) {
-                    Swal.fire({
-                        title: 'Pembayaran Gagal!',
-                        text: 'Maaf, terjadi kesalahan saat memproses pembayaran.',
-                        icon: 'error',
-                        confirmButtonColor: '#e11d48',
-                        confirmButtonText: 'Tutup'
-                    });
-                },
-                onClose: function() {
-                    // JIKA USER MENUTUP POP-UP MIDTRANS
-                    // Kita cek, kalau masih ada loading yang nggantung, kita tutup.
-                    Swal.close();
 
-                    Swal.fire({
-                        title: 'Pembayaran Tertunda',
-                        text: 'Anda menutup halaman sebelum menyelesaikan pembayaran.',
-                        icon: 'warning',
-                        confirmButtonColor: '#0d1f3a',
-                        confirmButtonText: 'Tutup'
+                    snap.pay('{{ $transaksi->snap_token }}', {
+                        onSuccess: function(result) {
+                            Swal.fire({
+                                title: 'Pembayaran Berhasil!',
+                                text: 'Terima kasih, pembayaran telah kami terima.',
+                                icon: 'success',
+                                confirmButtonColor: '#0d1f3a',
+                                confirmButtonText: 'Lihat Struk'
+                            }).then((swalResult) => {
+                                window.location.href = "{{ route('transaksi.cetak', $transaksi->id) }}";
+                            });
+                        },
+                        onPending: function(result) {
+                            Swal.fire({
+                                title: 'Menunggu Pembayaran',
+                                text: 'Silakan selesaikan instruksi pembayaran Anda.',
+                                icon: 'info',
+                                confirmButtonColor: '#0d1f3a',
+                                confirmButtonText: 'Tutup'
+                            });
+                        },
+                        onError: function(result) {
+                            Swal.fire({
+                                title: 'Pembayaran Gagal!',
+                                text: 'Maaf, terjadi kesalahan saat memproses pembayaran.',
+                                icon: 'error',
+                                confirmButtonColor: '#e11d48',
+                                confirmButtonText: 'Tutup'
+                            });
+                        },
+                        onClose: function() {
+                            Swal.close();
+
+                            Swal.fire({
+                                title: 'Pembayaran Tertunda',
+                                text: 'Anda menutup halaman sebelum menyelesaikan pembayaran.',
+                                icon: 'warning',
+                                confirmButtonColor: '#0d1f3a',
+                                confirmButtonText: 'Tutup'
+                            });
+                        }
                     });
-                }
-            });
-        };
-    </script>
+                };
+            }
+        </script>
+    @endif
 </x-layout>

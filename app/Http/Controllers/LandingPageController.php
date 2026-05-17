@@ -23,7 +23,8 @@ class LandingPageController extends Controller
             $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
 
             if ($pelanggan) {
-                $booking = Booking::where('user_id', auth()->id())
+                $booking = Booking::with('transaksi')
+                    ->where('user_id', auth()->id())
                     ->latest()
                     ->first();
             }

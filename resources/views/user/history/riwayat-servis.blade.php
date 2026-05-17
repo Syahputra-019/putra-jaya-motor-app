@@ -88,29 +88,15 @@
                                         class="mb-2 border-b border-yellow-200 pb-1 text-sm font-semibold uppercase tracking-wider text-gray-700">
                                         Rincian Nota</h4>
 
-                                    <!-- Jasa -->
                                     <div class="mb-3 mt-3">
-                                        @if ($transaksi->service)
-                                            <div class="mb-1 flex justify-between text-sm text-gray-700">
-                                                <span>Jasa: {{ $transaksi->service->nama_service }}</span>
-                                                <span>Rp
-                                                    {{ number_format($transaksi->service->harga, 0, ',', '.') }}</span>
+                                        @foreach ($transaksi->line_items as $item)
+                                            <div class="mb-1 flex justify-between gap-3 text-sm text-gray-700">
+                                                <span>{{ $item['nama'] }} <span
+                                                        class="text-xs text-gray-500">(x{{ $item['jumlah'] }})</span></span>
+                                                <span>Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</span>
                                             </div>
-                                        @endif
+                                        @endforeach
                                     </div>
-
-                                    <!-- Sparepart -->
-                                    @if ($transaksi->detailTransaksis->count() > 0)
-                                        <div class="mb-3">
-                                            @foreach ($transaksi->detailTransaksis as $detail)
-                                                <div class="mb-1 flex justify-between text-sm text-gray-700">
-                                                    <span>{{ $detail->sparepart->nama_sparepart }} <span
-                                                            class="text-xs text-gray-500">(x{{ $detail->jumlah }})</span></span>
-                                                    <span>Rp {{ number_format($detail->sub_total, 0, ',', '.') }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
 
                                     <!-- Total Biaya -->
                                     <div

@@ -145,7 +145,8 @@ class BookingController extends Controller
         $booking = null;
 
         if ($pelanggan) {
-            $booking = Booking::where('user_id', auth()->id())
+            $booking = Booking::with('transaksi')
+                ->where('user_id', auth()->id())
                 ->latest()
                 ->first();
         }
@@ -167,20 +168,6 @@ class BookingController extends Controller
         $booking->update([
             'status_konfirmasi' => $request->status_konfirmasi
         ]);
-
-        // Jika disetujui, gabungkan daftar rekomendasi ke sparepart_diminta
-        if ($request->status_konfirmasi === 'approved') {
-            $rekomendasi = $booking->rekomendasi_sparepart ?? [];
-            $sparepartDiminta = $booking->sparepart_diminta ?? [];
-            
-            foreach ($rekomendasi as $rek) {
-                if (!in_array($rek['nama'], $sparepartDiminta)) {
-                    $sparepartDiminta[] = $rek['nama'];
-                }
-            }
-            
-            $booking->update(['sparepart_diminta' => $sparepartDiminta]);
-        }
 
         $pesan = $request->status_konfirmasi === 'approved' ? 'Mantap! Anda telah menyetujui rekomendasi perbaikan.' : 'Anda telah menolak rekomendasi perbaikan.';
         return redirect()->back()->with('success', $pesan);

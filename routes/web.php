@@ -29,6 +29,9 @@ Route::get('register', [AuthController::class, 'showRegister'])->name('register'
 Route::post('register', [AuthController::class, 'register'])->name('register.post');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/transaksi/{id}/cetak', [TransaksiController::class, 'cetak'])->name('transaksi.cetak');
+    Route::get('/transaksi/{id}/bayar', [TransaksiController::class, 'bayar'])->name('transaksi.bayar');
+    Route::post('/transaksi/{id}/upload-struk', [TransaksiController::class, 'uploadStruk'])->name('transaksi.uploadStruk');
 
     Route::middleware(['role:admin'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -39,9 +42,6 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('/pelanggan', PelangganController::class);
         Route::resource('/service', ServiceController::class);
         Route::resource('/transaksi', TransaksiController::class);
-        Route::get('/transaksi/{id}/cetak', [TransaksiController::class, 'cetak'])->name('transaksi.cetak');
-        Route::get('/transaksi/{id}/bayar', [TransaksiController::class, 'bayar'])->name('transaksi.bayar');
-        Route::post('/transaksi/{id}/upload-struk', [TransaksiController::class, 'uploadStruk'])->name('transaksi.uploadStruk');
         Route::post('/transaksi/{id}/konfirmasi', [TransaksiController::class, 'konfirmasiPembayaran'])->name('transaksi.konfirmasi');
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/data-komplain', [KomplainController::class, 'adminIndex'])->name('pelanggan.komplain.index');

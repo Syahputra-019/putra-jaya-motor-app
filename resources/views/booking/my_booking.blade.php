@@ -335,6 +335,13 @@
                                 <div class="rounded-[24px] border border-slate-100 bg-slate-50/80 p-4">
                                     <div class="page-kicker">Aksi Cepat</div>
                                     <div class="mt-4 flex flex-wrap gap-3">
+                                        @if ($booking->transaksi)
+                                            @if (($booking->transaksi->status_pembayaran ?? null) === 'lunas')
+                                                <a href="{{ route('transaksi.cetak', $booking->transaksi->id) }}" class="btn-primary">Lihat Nota</a>
+                                            @else
+                                                <a href="{{ route('transaksi.bayar', $booking->transaksi->id) }}" class="btn-primary">Lanjutkan Pembayaran</a>
+                                            @endif
+                                        @endif
                                         <a href="{{ route('landing') }}" class="btn-secondary">Kembali ke Landing</a>
                                         <a href="{{ route('landing') }}#booking" class="btn-primary">Booking Lagi</a>
                                     </div>
