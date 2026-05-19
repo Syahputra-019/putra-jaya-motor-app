@@ -165,36 +165,7 @@
                                         {{ \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i') }}</div>
                                 </div>
                             </div>
-
-                            {{-- <div class="timeline-track">
-                                <div class="timeline-progress" style="width: {{ $progressWidth }}"></div>
-
-                                <div class="timeline-node">
-                                    <div
-                                        class="timeline-icon {{ in_array($bookingStatus, ['menunggu', 'Pending']) ? 'is-active' : 'is-done' }}">
-                                        1</div>
-                                    <div class="timeline-label">Antre</div>
-                                </div>
-
-                                <div class="timeline-node">
-                                    <div
-                                        class="timeline-icon {{ in_array($bookingStatus, ['diproses', 'Proses']) ? 'is-active' : (in_array($bookingStatus, ['selesai', 'Selesai']) || $paymentStatus === 'lunas' ? 'is-done' : '') }}">
-                                        2</div>
-                                    <div class="timeline-label">Dikerjakan</div>
-                                </div>
-
-                                <div class="timeline-node">
-                                    <div
-                                        class="timeline-icon {{ in_array($bookingStatus, ['selesai', 'Selesai']) && $paymentStatus !== 'lunas' ? 'is-active' : ($paymentStatus === 'lunas' ? 'is-done' : '') }}">
-                                        3</div>
-                                    <div class="timeline-label">Selesai</div>
-                                </div>
-
-                                <div class="timeline-node">
-                                    <div class="timeline-icon {{ $paymentStatus === 'lunas' ? 'is-done' : '' }}">4</div>
-                                    <div class="timeline-label">Lunas</div>
-                                </div>
-                            </div> --}}
+                            
                             <div class="timeline-track">
                                 <div class="timeline-progress" style="width: {{ $progressWidth }}; max-width: 75%;">
                                 </div>

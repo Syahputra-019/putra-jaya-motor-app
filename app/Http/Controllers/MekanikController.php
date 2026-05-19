@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Mekanik;
 use App\Models\Sparepart;
+use App\Notifications\BookingStatusNotification;
+use App\Notifications\SparepartRecommendationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -164,6 +166,11 @@ class MekanikController extends Controller
             'catatan_mekanik' => $request->catatan_mekanik,
         ]);
 
+        // Kirim update status ke user/pelanggan (Pastikan bukan guest booking)
+        if ($booking->user_id) {
+            $booking->user->notify(new BookingStatusNotification($booking));
+        }
+
         return redirect()->back()->with('success', 'Mantap! Status motor berhasil diupdate.');
     }
 
@@ -249,6 +256,11 @@ class MekanikController extends Controller
             'rekomendasi_sparepart' => $rekomendasiGabungan,
             'status_konfirmasi' => 'pending',
         ]);
+
+        // Kirim notifikasi konfirmasi part ke pelanggan
+        if ($booking->user_id) {
+            $booking->user->notify(new SparepartRecommendationNotification($booking));
+        }
 
         return redirect()->back()->with('success', 'Rekomendasi perbaikan berhasil dikirim ke pelanggan.');
     }

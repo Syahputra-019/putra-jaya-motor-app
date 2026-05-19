@@ -28,7 +28,11 @@
             ['label' => 'Jasa Servis', 'route' => 'service.index', 'patterns' => ['service.*']],
             ['label' => 'Kasir & Transaksi', 'route' => 'transaksi.index', 'patterns' => ['transaksi.*']],
             ['label' => 'Laporan', 'route' => 'laporan.index', 'patterns' => ['laporan.*']],
-            ['label' => 'Komplain Pelanggan', 'route' => 'pelanggan.komplain.index', 'patterns' => ['pelanggan.komplain.*']],
+            [
+                'label' => 'Komplain Pelanggan',
+                'route' => 'pelanggan.komplain.index',
+                'patterns' => ['pelanggan.komplain.*'],
+            ],
             ['label' => 'Testimonial', 'route' => 'admin.testimonial.index', 'patterns' => ['admin.testimonial.*']],
         ];
     }
@@ -132,21 +136,25 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('profile.edit') }}"
-                        class="user-panel flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-slate-100">
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <x-notification-bell />
 
-                        @if (isset($user) && $user->foto)
-                            <img src="{{ asset('storage/' . $user->foto) }}" alt="Foto Profil"
-                                class="h-10 w-10 rounded-full border border-slate-200 object-cover">
-                        @else
-                            <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'G', 0, 1)) }}</div>
-                        @endif
+                        <a href="{{ route('profile.edit') }}"
+                            class="user-panel flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-slate-100">
 
-                        <div>
-                            <div class="text-sm font-bold text-slate-900">{{ $user->name ?? 'Guest' }}</div>
-                            <div class="user-role">{{ $user->role ?? 'guest' }}</div>
-                        </div>
-                    </a>
+                            @if (isset($user) && $user->foto)
+                                <img src="{{ asset('storage/' . $user->foto) }}" alt="Foto Profil"
+                                    class="h-10 w-10 rounded-full border border-slate-200 object-cover">
+                            @else
+                                <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'G', 0, 1)) }}</div>
+                            @endif
+
+                            <div>
+                                <div class="text-sm font-bold text-slate-900">{{ $user->name ?? 'Guest' }}</div>
+                                <div class="user-role">{{ $user->role ?? 'guest' }}</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </header>
 

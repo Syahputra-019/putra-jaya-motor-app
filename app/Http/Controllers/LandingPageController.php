@@ -7,9 +7,13 @@ use App\Models\Pelanggan;
 use App\Models\Sparepart;
 use App\Models\Service;
 use App\Models\Testimonial;
+use App\Models\User;
+use App\Notifications\NewBookingNotification;
+use App\Notifications\PelangganNotification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class LandingPageController extends Controller
 {
@@ -93,6 +97,19 @@ class LandingPageController extends Controller
             'status' => 'menunggu',
             'status_pembayaran' => 'belum lunas',
         ]);
+
+        // Kirim Notifikasi ke semua admin
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new NewBookingNotification($booking));
+
+        // Kirim Notifikasi Sistem (Database) ke Pelanggan agar muncul di riwayat web
+        if ($booking->user_id) {
+            $user = User::find($booking->user_id);
+            if ($user) {
+                $waktu = Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i');
+                $user->notify(new PelangganNotification('Booking Berhasil', "Booking servis kendaraan Anda ({$booking->plat_nomor}) untuk jadwal {$waktu} telah tersimpan. Silakan tunggu update selanjutnya dari mekanik.", route('pelanggan.riwayat')));
+            }
+        }
 
         $this->sendWhatsApp($pelanggan, $booking);
 

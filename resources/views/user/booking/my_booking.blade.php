@@ -95,7 +95,8 @@
 
                 @if ($booking)
                     <section class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                        <div class="tracking-card">
+                        <div class="flex flex-col gap-6">
+                            <div class="tracking-card">
                             <div
                                 class="grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-3">
                                 <div>
@@ -292,6 +293,58 @@
                                 </div>
                             @endif
                         </div>
+
+                        {{-- UI Tab Pilihan Motor Baru --}}
+                        @if (isset($bookings) && $bookings->count() > 1)
+                            <div class="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm">
+                                <div class="mb-5 flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">Kendaraan Anda Lainnya</h3>
+                                        <p class="mt-1 text-sm text-slate-500">Pilih motor di bawah ini untuk beralih melihat status servisnya.</p>
+                                    </div>
+                                    <div class="hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-500 sm:flex">
+                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    @foreach ($bookings as $b)
+                                        <a href="{{ route('booking.mine', ['id' => $b->id]) }}" 
+                                           class="group relative flex items-center justify-between overflow-hidden rounded-2xl border p-4 transition-all duration-300 {{ $booking->id == $b->id ? 'border-blue-200 bg-blue-50/50 shadow-sm ring-1 ring-blue-500' : 'border-slate-100 bg-white hover:border-blue-100 hover:bg-slate-50 hover:shadow-md' }}">
+                                            
+                                            @if($booking->id == $b->id)
+                                                <div class="absolute bottom-0 left-0 top-0 w-1.5 bg-blue-600"></div>
+                                            @endif
+
+                                            <div class="flex items-center gap-4 {{ $booking->id == $b->id ? 'pl-2' : '' }}">
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full {{ $booking->id == $b->id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600' }}">
+                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v8l9-11h-7z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h4 class="text-sm font-bold {{ $booking->id == $b->id ? 'text-blue-900' : 'text-slate-800 group-hover:text-blue-700' }}">{{ $b->tipe_motor }}</h4>
+                                                    <p class="mt-0.5 text-xs font-semibold uppercase tracking-wider {{ $booking->id == $b->id ? 'text-blue-600' : 'text-slate-400' }}">{{ $b->plat_nomor }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex flex-col items-end gap-1">
+                                                @if(in_array($b->status, ['menunggu', 'diproses']))
+                                                    <span class="flex h-3 w-3 rounded-full {{ $booking->id == $b->id ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)]' : 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]' }} animate-pulse"></span>
+                                                    <span class="text-[10px] font-bold text-slate-400">Proses</span>
+                                                @else
+                                                    <span class="flex h-3 w-3 rounded-full {{ $booking->id == $b->id ? 'bg-blue-600' : 'bg-emerald-400' }}"></span>
+                                                    <span class="text-[10px] font-bold text-slate-400">Selesai</span>
+                                                @endif
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
 
                         <div class="surface-card">
                             <div>

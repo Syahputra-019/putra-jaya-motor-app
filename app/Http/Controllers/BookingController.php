@@ -6,7 +6,14 @@ use App\Models\Booking;
 use App\Models\Mekanik;
 use App\Models\Pelanggan;
 use App\Models\Sparepart;
+use App\Models\User;
+use App\Notifications\NewBookingNotification;
+use App\Notifications\NewJobAssignedNotification;
+use App\Notifications\PelangganNotification;
+use App\Notifications\RekomendasiDijawabNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class BookingController extends Controller
 {
@@ -68,7 +75,26 @@ class BookingController extends Controller
         $data['status'] = $data['status'] ?? 'menunggu';
         $data['status_pembayaran'] = $data['status_pembayaran'] ?? 'belum lunas';
 
-        Booking::create($data);
+        $booking = Booking::create($data);
+
+        // 1. Beritahu Admin
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new NewBookingNotification($booking));
+
+        // 2. Beritahu Mekanik jika saat awal booking mekanik sudah di-set
+        if ($booking->mekanik_id) {
+            $mekanik = Mekanik::with('user')->find($booking->mekanik_id);
+            if ($mekanik && $mekanik->user) $mekanik->user->notify(new NewJobAssignedNotification($booking));
+        }
+
+        // 3. Beritahu Pelanggan via Notifikasi Database
+        if ($booking->user_id) {
+            $user = User::find($booking->user_id);
+            if ($user) {
+                $waktu = Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i');
+                $user->notify(new PelangganNotification('Booking Berhasil Dibuat', "Booking servis kendaraan Anda ({$booking->plat_nomor}) pada {$waktu} telah terdaftar di sistem.", route('pelanggan.riwayat')));
+            }
+        }
 
         return redirect()->route('booking.index')->with('success', 'Booking berhasil dibuat!');
     }
@@ -123,7 +149,16 @@ class BookingController extends Controller
         }
 
         $data['status'] = $data['status'] ?? $booking->status;
+
+        $oldMekanikId = $booking->mekanik_id;
+
         $booking->update($data);
+
+        // Jika admin nge-assign / mengubah mekanik baru untuk booking ini
+        if ($booking->mekanik_id && $booking->mekanik_id !== $oldMekanikId) {
+            $mekanik = Mekanik::with('user')->find($booking->mekanik_id);
+            if ($mekanik && $mekanik->user) $mekanik->user->notify(new NewJobAssignedNotification($booking));
+        }
 
         return redirect()->back()->with('success', 'Status dan catatan servis berhasil diupdate!');
     }
@@ -138,20 +173,30 @@ class BookingController extends Controller
         return redirect()->route('booking.index')->with('success', 'Booking berhasil dihapus!');
     }
 
-    public function myBooking()
+    public function myBooking(Request $request)
     {
         $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
 
+        $bookings = collect();
         $booking = null;
 
         if ($pelanggan) {
-            $booking = Booking::with('transaksi')
+            $bookings = Booking::with('transaksi')
                 ->where('user_id', auth()->id())
                 ->latest()
-                ->first();
+                ->take(10) // Ambil 10 booking terbaru agar tidak terlalu banyak tombol nantinya
+                ->get();
+
+            if ($request->has('id')) {
+                $booking = $bookings->firstWhere('id', $request->id);
+            }
+            
+            if (!$booking) {
+                $booking = $bookings->first();
+            }
         }
 
-        return view('booking.my_booking', compact('booking'));
+        return view('user.booking.my_booking', compact('booking', 'bookings'));
     }
 
     public function konfirmasiRekomendasi(Request $request, Booking $booking)
@@ -168,6 +213,15 @@ class BookingController extends Controller
         $booking->update([
             'status_konfirmasi' => $request->status_konfirmasi
         ]);
+
+        // Beritahu Admin dan Mekanik bahwa pelanggan sudah merespon rekomendasi
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new RekomendasiDijawabNotification($booking, $request->status_konfirmasi));
+
+        if ($booking->mekanik_id) {
+            $mekanik = Mekanik::with('user')->find($booking->mekanik_id);
+            if ($mekanik && $mekanik->user) $mekanik->user->notify(new RekomendasiDijawabNotification($booking, $request->status_konfirmasi));
+        }
 
         $pesan = $request->status_konfirmasi === 'approved' ? 'Mantap! Anda telah menyetujui rekomendasi perbaikan.' : 'Anda telah menolak rekomendasi perbaikan.';
         return redirect()->back()->with('success', $pesan);

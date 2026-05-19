@@ -545,7 +545,18 @@ class TransaksiController extends Controller
 
         // Menggunakan eager loading (with) agar tidak terjadi N+1 query problem
         $transaksis = Transaksi::with(['mekanik', 'service', 'detailTransaksis.sparepart', 'booking'])
-            ->where('pelanggan_id', $pelanggan->id)
+            ->where(function ($query) use ($pelanggan, $user) {
+                // 1. Cocokkan dengan pelanggan_id user saat ini
+                $query->where('pelanggan_id', $pelanggan->id)
+                    // 2. Transaksi dari booking milik user (jika admin lupa ubah dropdown pelanggan)
+                    ->orWhereHas('booking', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    })
+                    // 3. Transaksi saat user masih jadi Guest (dicocokkan lewat nomor WA yang sama)
+                    ->orWhereHas('pelanggan', function ($q) use ($pelanggan) {
+                        $q->where('no_telp', $pelanggan->no_telp)->whereNotNull('no_telp');
+                    });
+            })
             ->latest()
             ->get();
 
@@ -564,7 +575,12 @@ class TransaksiController extends Controller
             return;
         }
 
-        if ($user->role === 'pelanggan' && $transaksi->booking?->user_id === $user->id) {
+        $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+        $isOwner = $transaksi->booking?->user_id === $user->id || 
+                   $transaksi->pelanggan_id === $pelanggan?->id || 
+                   (filled($transaksi->pelanggan?->no_telp) && $transaksi->pelanggan?->no_telp === $pelanggan?->no_telp);
+
+        if ($user->role === 'pelanggan' && $isOwner) {
             return;
         }
 

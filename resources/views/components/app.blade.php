@@ -50,6 +50,8 @@
                 {{-- Right: Auth Actions & Mobile Toggle --}}
                 <div class="flex items-center justify-end gap-3 lg:w-1/4">
                     @auth
+                        <x-notification-bell />
+
                         @if ($isPelanggan)
                             <div class="relative" x-data="{ openProfile: false }">
                                 <button @click="openProfile = !openProfile" @click.away="openProfile = false"
