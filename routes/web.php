@@ -23,6 +23,7 @@ Route::get('/', [LandingPageController::class, 'index'])->name('landing');
 // 2. TAMBAH rute untuk proses simpan booking dari form landing page
 Route::post('/booking/store-public', [LandingPageController::class, 'storeBooking'])->name('booking.public');
 Route::get('/transaksi/{id}/nota', [TransaksiController::class, 'notaPublik'])->name('transaksi.nota')->middleware('signed');
+Route::get('/booking/jadwal-kosong', [BookingController::class, 'cekJadwal'])->name('booking.jadwal');
 
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login.post');

@@ -13,6 +13,7 @@ use App\Notifications\PelangganNotification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 class LandingPageController extends Controller
@@ -55,48 +56,68 @@ class LandingPageController extends Controller
             'sparepart_diminta' => 'nullable|array',
         ]);
 
-        if (Auth::check()) {
-            $pelanggan = Pelanggan::firstOrCreate(
-                ['user_id' => Auth::id()],
-                [
+        try {
+            DB::beginTransaction();
+
+            // Cek Kuota Booking (Maksimal 5 motor per hari) dengan penguncian (Lock For Update)
+            $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
+            $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)
+                ->lockForUpdate()
+                ->count();
+
+            if ($jumlahBookingHariIni >= 5) {
+                DB::rollBack();
+                return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
+            }
+
+            if (Auth::check()) {
+                $pelanggan = Pelanggan::firstOrCreate(
+                    ['user_id' => Auth::id()],
+                    [
+                        'nama_pelanggan' => $request->nama,
+                        'no_telp' => $request->no_telp,
+                    ]
+                );
+
+                $pelanggan->update([
                     'nama_pelanggan' => $request->nama,
                     'no_telp' => $request->no_telp,
-                ]
-            );
+                ]);
+            } else {
+                $pelanggan = Pelanggan::firstOrCreate(
+                    ['no_telp' => $request->no_telp],
+                    [
+                        'nama_pelanggan' => $request->nama,
+                        'user_id' => null,
+                    ]
+                );
+            }
 
-            $pelanggan->update([
-                'nama_pelanggan' => $request->nama,
-                'no_telp' => $request->no_telp,
+            $kategori_servis = $request->kategori_servis;
+            if (in_array('Lainnya', $kategori_servis) && $request->filled('layanan_lainnya')) {
+                $kategori_servis = array_map(function($item) use ($request) {
+                    return $item === 'Lainnya' ? 'Lainnya: ' . $request->layanan_lainnya : $item;
+                }, $kategori_servis);
+            }
+
+            $booking = Booking::create([
+                'user_id' => Auth::id(),
+                'pelanggan_id' => $pelanggan->id,
+                'plat_nomor' => $request->plat_nomor,
+                'tipe_motor' => $request->tipe_motor,
+                'keluhan' => $request->keluhan,
+                'jadwal_booking' => $request->jadwal_booking,
+                'kategori_servis' => $kategori_servis,
+                'sparepart_diminta' => $request->sparepart_diminta,
+                'status' => 'menunggu',
+                'status_pembayaran' => 'belum lunas',
             ]);
-        } else {
-            $pelanggan = Pelanggan::firstOrCreate(
-                ['no_telp' => $request->no_telp],
-                [
-                    'nama_pelanggan' => $request->nama,
-                    'user_id' => null,
-                ]
-            );
-        }
 
-        $kategori_servis = $request->kategori_servis;
-        if (in_array('Lainnya', $kategori_servis) && $request->filled('layanan_lainnya')) {
-            $kategori_servis = array_map(function($item) use ($request) {
-                return $item === 'Lainnya' ? 'Lainnya: ' . $request->layanan_lainnya : $item;
-            }, $kategori_servis);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        $booking = Booking::create([
-            'user_id' => Auth::id(),
-            'pelanggan_id' => $pelanggan->id,
-            'plat_nomor' => $request->plat_nomor,
-            'tipe_motor' => $request->tipe_motor,
-            'keluhan' => $request->keluhan,
-            'jadwal_booking' => $request->jadwal_booking,
-            'kategori_servis' => $kategori_servis,
-            'sparepart_diminta' => $request->sparepart_diminta,
-            'status' => 'menunggu',
-            'status_pembayaran' => 'belum lunas',
-        ]);
 
         // Kirim Notifikasi ke semua admin
         $admins = User::where('role', 'admin')->get();

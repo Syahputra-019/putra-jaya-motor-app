@@ -13,6 +13,7 @@ use App\Notifications\PelangganNotification;
 use App\Notifications\RekomendasiDijawabNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 class BookingController extends Controller
@@ -60,22 +61,43 @@ class BookingController extends Controller
 
         $data = $request->all();
 
-        if (auth()->user()->role === 'pelanggan') {
-            $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
-            if (!$pelanggan) {
-                return redirect()->back()->withInput()->with('error', 'Silakan lengkapi profil/nomor telepon Anda terlebih dahulu di menu Profile.');
+        try {
+            DB::beginTransaction();
+
+            // Cek Kuota Booking (Maksimal 5 motor per hari) dengan penguncian (Lock For Update)
+            $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
+            $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)
+                ->lockForUpdate()
+                ->count();
+
+            if ($jumlahBookingHariIni >= 5) {
+                DB::rollBack();
+                return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
             }
-            $data['pelanggan_id'] = $pelanggan->id;
-            $data['user_id'] = auth()->id();
-        } else {
-            $pelanggan = Pelanggan::findOrFail($data['pelanggan_id']);
-            $data['user_id'] = $pelanggan->user_id;
+
+            if (auth()->user()->role === 'pelanggan') {
+                $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
+                if (!$pelanggan) {
+                    DB::rollBack();
+                    return redirect()->back()->withInput()->with('error', 'Silakan lengkapi profil/nomor telepon Anda terlebih dahulu di menu Profile.');
+                }
+                $data['pelanggan_id'] = $pelanggan->id;
+                $data['user_id'] = auth()->id();
+            } else {
+                $pelanggan = Pelanggan::findOrFail($data['pelanggan_id']);
+                $data['user_id'] = $pelanggan->user_id;
+            }
+
+            $data['status'] = $data['status'] ?? 'menunggu';
+            $data['status_pembayaran'] = $data['status_pembayaran'] ?? 'belum lunas';
+
+            $booking = Booking::create($data);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        $data['status'] = $data['status'] ?? 'menunggu';
-        $data['status_pembayaran'] = $data['status_pembayaran'] ?? 'belum lunas';
-
-        $booking = Booking::create($data);
 
         // 1. Beritahu Admin
         $admins = User::where('role', 'admin')->get();
@@ -135,6 +157,13 @@ class BookingController extends Controller
         ]);
 
         $data = $request->all();
+
+        // Cek Kuota Booking (Maksimal 5 motor per hari)
+        $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
+        $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)->count();
+        if ($jumlahBookingHariIni >= 5) {
+            return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
+        }
 
         if (auth()->user()->role === 'pelanggan') {
             $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
@@ -225,5 +254,23 @@ class BookingController extends Controller
 
         $pesan = $request->status_konfirmasi === 'approved' ? 'Mantap! Anda telah menyetujui rekomendasi perbaikan.' : 'Anda telah menolak rekomendasi perbaikan.';
         return redirect()->back()->with('success', $pesan);
+    }
+
+    public function cekJadwal()
+    {
+        $jadwal = [];
+        for ($i = 0; $i < 10; $i++) {
+            $tanggal = Carbon::now()->addDays($i)->toDateString();
+            $jumlahBooking = Booking::whereDate('jadwal_booking', $tanggal)->count();
+            $sisaKuota = 5 - $jumlahBooking;
+            
+            $jadwal[] = [
+                'tanggal' => $tanggal,
+                'jumlah_booking' => $jumlahBooking,
+                'sisa_kuota' => $sisaKuota < 0 ? 0 : $sisaKuota,
+            ];
+        }
+
+        return view('user.booking.jadwal', compact('jadwal'));
     }
 }

@@ -29,6 +29,7 @@
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .hide-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -50,7 +51,9 @@
 
                 <div class="mt-8 flex flex-wrap gap-3">
                     <a href="#booking" class="btn-primary">Booking Sekarang</a>
-                    <a href="#layanan" class="btn-accent">Lihat Layanan</a>
+                    <a href="{{ route('booking.jadwal') }}"
+                        class="btn-accent">Lihat
+                        Sisa Slot Hari Ini</a>
                 </div>
 
                 <div class="mt-10 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
@@ -165,7 +168,7 @@
                                         {{ \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i') }}</div>
                                 </div>
                             </div>
-                            
+
                             <div class="timeline-track">
                                 <div class="timeline-progress" style="width: {{ $progressWidth }}; max-width: 75%;">
                                 </div>
@@ -347,6 +350,13 @@
                         </div>
                     @endif
 
+                    @if (session('error_kuota'))
+                        <div class="alert alert-danger mb-6 border-red-200 bg-red-50 text-red-700">
+                            <div class="font-black">!</div>
+                            <div>{{ session('error_kuota') }}</div>
+                        </div>
+                    @endif
+
                     <form action="{{ route('booking.public') }}" method="POST" class="form-shell">
                         @csrf
 
@@ -380,7 +390,8 @@
                             <div class="form-field">
                                 <label class="field-label" for="jadwal_booking">Pilih Waktu Booking</label>
                                 <input id="jadwal_booking" type="datetime-local" name="jadwal_booking"
-                                    value="{{ old('jadwal_booking') }}" class="form-input" required>
+                                    value="{{ request('tanggal') ? request('tanggal') . 'T09:00' : old('jadwal_booking') }}"
+                                    class="form-input" required>
                             </div>
 
                             <div class="form-field form-field-full">
@@ -462,13 +473,15 @@
                 <div class="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
                     <div class="text-center md:text-left">
                         <h2 class="text-3xl font-bold text-slate-900">Apa Kata Pelanggan Kami</h2>
-                        <p class="mt-2 text-slate-500">Pengalaman nyata dari pelanggan yang telah mempercayakan motornya kepada kami.</p>
+                        <p class="mt-2 text-slate-500">Pengalaman nyata dari pelanggan yang telah mempercayakan motornya
+                            kepada kami.</p>
                     </div>
                     <div class="flex gap-3">
                         <button id="btn-prev-testimonial" aria-label="Previous"
                             class="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-blue-50 hover:text-blue-600 hover:shadow-md focus:outline-none">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                         <button id="btn-next-testimonial" aria-label="Next"
@@ -481,20 +494,26 @@
                 </div>
 
                 <div class="relative -mx-4 px-4 sm:mx-0 sm:px-0">
-                    <div id="testimonial-container" class="hide-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-8 pt-4">
+                    <div id="testimonial-container"
+                        class="hide-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-8 pt-4">
                         @foreach ($testimonials as $testi)
-                            <div class="flex w-[85%] shrink-0 snap-center flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333333%-1rem)]">
+                            <div
+                                class="flex w-[85%] shrink-0 snap-center flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333333%-1rem)]">
                                 <div>
                                     {{-- Rating --}}
                                     <div class="mb-4 flex items-center gap-1">
                                         @for ($i = 1; $i <= 5; $i++)
                                             @if ($i <= $testi->rating)
-                                                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                <svg class="h-5 w-5 text-yellow-400" fill="currentColor"
+                                                    viewBox="0 0 20 20">
+                                                    <path
+                                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                                 </svg>
                                             @else
-                                                <svg class="h-5 w-5 text-slate-200" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                <svg class="h-5 w-5 text-slate-200" fill="currentColor"
+                                                    viewBox="0 0 20 20">
+                                                    <path
+                                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                                 </svg>
                                             @endif
                                         @endfor
@@ -509,15 +528,18 @@
                                 {{-- User Info --}}
                                 <div class="mt-auto flex items-center gap-3 border-t border-slate-100 pt-5">
                                     {{-- Inisial / Foto --}}
-                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600">
+                                    <div
+                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600">
                                         @if ($testi->user && $testi->user->foto)
-                                            <img src="{{ asset('storage/' . $testi->user->foto) }}" alt="User Image" class="h-full w-full rounded-full object-cover">
+                                            <img src="{{ asset('storage/' . $testi->user->foto) }}" alt="User Image"
+                                                class="h-full w-full rounded-full object-cover">
                                         @else
                                             {{ strtoupper(substr($testi->user->name ?? 'A', 0, 1)) }}
                                         @endif
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <h4 class="truncate text-sm font-semibold text-slate-900">{{ $testi->user->name ?? 'Anonim' }}</h4>
+                                        <h4 class="truncate text-sm font-semibold text-slate-900">
+                                            {{ $testi->user->name ?? 'Anonim' }}</h4>
                                         <p class="text-xs text-slate-500">Pelanggan</p>
                                     </div>
                                 </div>
@@ -601,13 +623,19 @@
             if (testimonialContainer && btnPrevTestimonial && btnNextTestimonial) {
                 btnPrevTestimonial.addEventListener('click', () => {
                     // Scroll sejauh lebar 1 elemen pertama beserta gap-nya (24px = gap-6)
-                    const scrollAmount = testimonialContainer.firstElementChild.offsetWidth + 24; 
-                    testimonialContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                    const scrollAmount = testimonialContainer.firstElementChild.offsetWidth + 24;
+                    testimonialContainer.scrollBy({
+                        left: -scrollAmount,
+                        behavior: 'smooth'
+                    });
                 });
 
                 btnNextTestimonial.addEventListener('click', () => {
-                    const scrollAmount = testimonialContainer.firstElementChild.offsetWidth + 24; 
-                    testimonialContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    const scrollAmount = testimonialContainer.firstElementChild.offsetWidth + 24;
+                    testimonialContainer.scrollBy({
+                        left: scrollAmount,
+                        behavior: 'smooth'
+                    });
                 });
             }
         });
