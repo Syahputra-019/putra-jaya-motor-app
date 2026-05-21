@@ -15,32 +15,14 @@ class MekanikSeeder extends Seeder
             [
                 'nama_mekanik' => 'Mas Mekanik',
                 'no_telp' => '081234567890',
-                'spesialisasi' => 'Mesin',
-                'email' => 'mekanik@gmail.com',
-            ],
-            [
-                'nama_mekanik' => 'Mas Anto',
-                'no_telp' => '081987654321',
                 'spesialisasi' => 'Servis Rutin',
-                'email' => 'mas.anto@example.com',
+                'email' => 'mas.mekanik@gmail.com',
             ],
             [
-                'nama_mekanik' => 'Bang Jali',
-                'no_telp' => '085612349876',
-                'spesialisasi' => 'Kelistrikan',
-                'email' => 'bang.jali@example.com',
-            ],
-            [
-                'nama_mekanik' => 'Kang Ujang',
-                'no_telp' => '082233445566',
-                'spesialisasi' => 'Modifikasi',
-                'email' => 'kang.ujang@example.com',
-            ],
-            [
-                'nama_mekanik' => 'Pakde Yanto',
-                'no_telp' => '081122334455',
+                'nama_mekanik' => 'Pak Mekanik',
+                'no_telp' => '081987654321',
                 'spesialisasi' => 'Mesin',
-                'email' => 'pakde.yanto@example.com',
+                'email' => 'pak.mekanik@example.com',
             ],
         ];
 

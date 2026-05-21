@@ -24,7 +24,7 @@
                     }
                 @endphp
 
-                <div
+                <div data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}"
                     class="{{ $bgClass }} flex flex-col items-center rounded-2xl border p-6 text-center shadow-sm transition hover:shadow-md">
                     <span class="mb-2 text-sm font-semibold uppercase tracking-wider">
                         {{ \Carbon\Carbon::parse($hari['tanggal'])->locale('id')->isoFormat('dddd') }}

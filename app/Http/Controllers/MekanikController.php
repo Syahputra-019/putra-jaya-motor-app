@@ -193,6 +193,10 @@ class MekanikController extends Controller
             'harga_part_luar.*' => 'nullable|numeric|min:0',
             'jumlah_luar' => 'nullable|array',
             'jumlah_luar.*' => 'nullable|integer|min:1',
+            'nama_jasa' => 'nullable|array',
+            'nama_jasa.*' => 'nullable|string|max:255',
+            'harga_jasa' => 'nullable|array',
+            'harga_jasa.*' => 'nullable|numeric|min:0',
         ]);
 
         $rekomendasiBaru = [];
@@ -241,9 +245,31 @@ class MekanikController extends Controller
             ];
         }
 
+        foreach ($request->input('nama_jasa', []) as $index => $namaJasa) {
+            $namaJasa = trim((string) $namaJasa);
+
+            if ($namaJasa === '') {
+                continue;
+            }
+
+            $harga = (int) ($request->input("harga_jasa.$index") ?? 0);
+
+            if ($harga < 0) {
+                continue;
+            }
+
+            $rekomendasiBaru[] = [
+                'id' => null,
+                'nama' => $namaJasa,
+                'harga' => $harga,
+                'jumlah' => 1, // Jasa otomatis berjumlah 1
+                'tipe' => 'jasa',
+            ];
+        }
+
         if (empty($rekomendasiBaru)) {
             throw ValidationException::withMessages([
-                'rekomendasi' => 'Tambahkan minimal satu sparepart bengkel atau part luar sebelum mengirim rekomendasi.',
+                'rekomendasi' => 'Tambahkan minimal satu sparepart bengkel, part luar, atau jasa sebelum mengirim rekomendasi.',
             ]);
         }
 

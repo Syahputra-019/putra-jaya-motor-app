@@ -2,7 +2,6 @@
     <div class="page-shell">
         <div class="page-header">
             <div class="page-header-split">
-                <p class="page-kicker">Queue Management</p>
                 <h1 class="page-title">Antrean booking</h1>
                 <p class="page-description">Pantau semua antrean servis dengan tampilan status yang lebih jelas dan tombol aksi yang konsisten.</p>
             </div>

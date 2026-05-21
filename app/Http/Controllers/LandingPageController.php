@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Pelanggan;
+use App\Models\Mekanik;
 use App\Models\Sparepart;
 use App\Models\Service;
 use App\Models\Testimonial;
@@ -70,6 +71,26 @@ class LandingPageController extends Controller
                 return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
             }
 
+            // START: Logic for automatic mechanic assignment (Round Robin)
+            $mekanikIdToAssign = null;
+            $allMekanikIds = Mekanik::pluck('id')->all();
+
+            if (!empty($allMekanikIds)) {
+                // Cari booking terakhir yang punya mekanik
+                $lastAssignedBooking = Booking::whereNotNull('mekanik_id')->latest('id')->first();
+
+                if ($lastAssignedBooking && in_array($lastAssignedBooking->mekanik_id, $allMekanikIds)) {
+                    $lastMekanikIndex = array_search($lastAssignedBooking->mekanik_id, $allMekanikIds);
+                    // Ambil mekanik selanjutnya, jika sudah di akhir, kembali ke awal (modulo)
+                    $nextMekanikIndex = ($lastMekanikIndex + 1) % count($allMekanikIds);
+                    $mekanikIdToAssign = $allMekanikIds[$nextMekanikIndex];
+                } else {
+                    // Jika tidak ada booking sebelumnya atau mekanik lama sudah dihapus, ambil mekanik pertama
+                    $mekanikIdToAssign = $allMekanikIds[0];
+                }
+            }
+            // END: Logic for automatic mechanic assignment
+
             if (Auth::check()) {
                 $pelanggan = Pelanggan::firstOrCreate(
                     ['user_id' => Auth::id()],
@@ -103,6 +124,7 @@ class LandingPageController extends Controller
             $booking = Booking::create([
                 'user_id' => Auth::id(),
                 'pelanggan_id' => $pelanggan->id,
+                'mekanik_id' => $mekanikIdToAssign,
                 'plat_nomor' => $request->plat_nomor,
                 'tipe_motor' => $request->tipe_motor,
                 'keluhan' => $request->keluhan,

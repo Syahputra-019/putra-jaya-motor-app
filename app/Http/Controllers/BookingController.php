@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Mekanik;
 use App\Models\Pelanggan;
+use App\Models\Service;
 use App\Models\Sparepart;
 use App\Models\User;
 use App\Notifications\NewBookingNotification;
@@ -20,7 +21,16 @@ class BookingController extends Controller
 {
     public function index()
     {
-        $query = Booking::with(['pelanggan', 'mekanik'])->orderBy('jadwal_booking', 'desc');
+        $query = Booking::with(['pelanggan', 'mekanik'])
+            ->where(function ($q) {
+                // Tampilkan hanya booking yang masih aktif di antrean
+                $q->whereIn('status', ['menunggu', 'diproses'])
+                    // atau yang sudah selesai tapi belum dibuatkan transaksi kasir
+                    ->orWhere(function ($sub) {
+                        $sub->where('status', 'selesai')
+                            ->whereDoesntHave('transaksi');
+                    });
+            })->orderBy('jadwal_booking', 'desc');
 
         if (auth()->user()->role === 'pelanggan') {
             $query->where('user_id', auth()->id());
@@ -39,8 +49,9 @@ class BookingController extends Controller
 
         $mekaniks = Mekanik::all();
         $spareparts = Sparepart::orderBy('nama_sparepart', 'asc')->get();
+        $services = Service::orderBy('nama_service', 'asc')->get();
 
-        return view('booking.create', compact('pelanggans', 'mekaniks', 'spareparts'));
+        return view('booking.create', compact('pelanggans', 'mekaniks', 'spareparts', 'services'));
     }
 
     public function store(Request $request)
@@ -75,6 +86,29 @@ class BookingController extends Controller
                 return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
             }
 
+            // START: Logic for automatic mechanic assignment (Round Robin)
+            $mekanikIdToAssign = null;
+            // Hanya jalankan jika mekanik tidak dipilih manual di form
+            if (empty($request->mekanik_id)) {
+                $allMekanikIds = Mekanik::pluck('id')->all();
+
+                if (!empty($allMekanikIds)) {
+                    // Cari booking terakhir yang punya mekanik
+                    $lastAssignedBooking = Booking::whereNotNull('mekanik_id')->latest('id')->first();
+
+                    if ($lastAssignedBooking && in_array($lastAssignedBooking->mekanik_id, $allMekanikIds)) {
+                        $lastMekanikIndex = array_search($lastAssignedBooking->mekanik_id, $allMekanikIds);
+                        // Ambil mekanik selanjutnya, jika sudah di akhir, kembali ke awal (modulo)
+                        $nextMekanikIndex = ($lastMekanikIndex + 1) % count($allMekanikIds);
+                        $mekanikIdToAssign = $allMekanikIds[$nextMekanikIndex];
+                    } else {
+                        // Jika tidak ada booking sebelumnya atau mekanik lama sudah dihapus, ambil mekanik pertama
+                        $mekanikIdToAssign = $allMekanikIds[0];
+                    }
+                }
+            }
+            // END: Logic for automatic mechanic assignment
+
             if (auth()->user()->role === 'pelanggan') {
                 $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
                 if (!$pelanggan) {
@@ -88,8 +122,18 @@ class BookingController extends Controller
                 $data['user_id'] = $pelanggan->user_id;
             }
 
+            // Logika gabung Layanan Lainnya
+            if (isset($data['kategori_servis']) && is_array($data['kategori_servis']) && in_array('Lainnya', $data['kategori_servis']) && $request->filled('layanan_lainnya')) {
+                $data['kategori_servis'] = array_map(function($item) use ($request) {
+                    return $item === 'Lainnya' ? 'Lainnya: ' . $request->layanan_lainnya : $item;
+                }, $data['kategori_servis']);
+            }
+
             $data['status'] = $data['status'] ?? 'menunggu';
             $data['status_pembayaran'] = $data['status_pembayaran'] ?? 'belum lunas';
+
+            // Prioritaskan mekanik dari form, jika kosong, pakai mekanik otomatis
+            $data['mekanik_id'] = $request->mekanik_id ?? $mekanikIdToAssign;
 
             $booking = Booking::create($data);
 

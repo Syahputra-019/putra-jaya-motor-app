@@ -51,8 +51,7 @@
 
                 <div class="mt-8 flex flex-wrap gap-3">
                     <a href="#booking" class="btn-primary">Booking Sekarang</a>
-                    <a href="{{ route('booking.jadwal') }}"
-                        class="btn-accent">Lihat
+                    <a href="{{ route('booking.jadwal') }}" class="btn-accent">Lihat
                         Sisa Slot Hari Ini</a>
                 </div>
 
@@ -233,6 +232,43 @@
                                     Status booking belum tersedia atau sudah dibatalkan.
                                 @endif
                             </div>
+
+                            @if (($booking->status_konfirmasi ?? '') === 'menunggu' || ($booking->status_konfirmasi ?? '') === 'pending')
+                                <div class="mt-4 rounded-[24px] border border-yellow-200 bg-yellow-50 p-5">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-200 text-xl">⚠️</div>
+                                        <div>
+                                            <h4 class="font-bold text-yellow-900">Persetujuan Harga Layanan</h4>
+                                            <p class="mt-1 text-sm leading-6 text-yellow-800">Mekanik telah mengecek motor Anda untuk layanan 'Lainnya'. Silakan konfirmasi estimasi harga untuk melanjutkan pengerjaan.</p>
+                                            @if($booking->catatan_mekanik ?? $booking->rekomendasi_servis ?? null)
+                                                <div class="mt-3 rounded-xl bg-white/60 p-3 text-sm italic text-yellow-900">
+                                                    "{{ $booking->catatan_mekanik ?? $booking->rekomendasi_servis }}"
+                                                </div>
+                                            @endif
+                                            <div class="mt-4 flex flex-wrap gap-3">
+                                                <form action="{{ route('booking.konfirmasi_rekomendasi', $booking->id) }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="status_konfirmasi" value="approved">
+                                                    <button type="submit" class="btn-primary !py-2 text-sm">Setuju & Lanjut Servis</button>
+                                                </form>
+                                                <form action="{{ route('booking.konfirmasi_rekomendasi', $booking->id) }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="status_konfirmasi" value="rejected">
+                                                    <button type="submit" class="btn-danger !py-2 text-sm">Tolak Rekomendasi</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif(($booking->status_konfirmasi ?? '') === 'approved')
+                                <div class="mt-4 rounded-[20px] border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+                                    ✅ Anda telah menyetujui harga/rekomendasi mekanik. Pengerjaan dilanjutkan.
+                                </div>
+                            @elseif(($booking->status_konfirmasi ?? '') === 'rejected')
+                                <div class="mt-4 rounded-[20px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+                                    ❌ Anda menolak rekomendasi tambahan mekanik.
+                                </div>
+                            @endif
 
                             @if ($booking->transaksi)
                                 <div class="mt-5 flex flex-wrap gap-3">
@@ -454,7 +490,14 @@
                                     <p class="mt-1 text-3xl font-bold text-blue-700" id="estimasi-biaya">Rp 0</p>
                                     <p class="mt-2 text-xs text-slate-500">*Ini hanya estimasi kasar berdasarkan layanan &
                                         sparepart yang dipilih. Harga akhir bisa menyesuaikan kondisi aktual kendaraan saat
-                                        diperiksa mekanik.</p>
+                                        diperiksa <mekanik>
+                                        <admin></admin>.</p>
+                                    <div id="alert-lainnya"
+                                        class="mt-3 hidden rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 transition-all">
+                                        ⚠️ <strong>Peringatan:</strong> Karena Anda memilih layanan 'Lainnya', estimasi ini
+                                        belum termasuk biaya pengerjaan/sparepart untuk layanan tersebut. Mekanik/Admin kami akan
+                                        mengonfirmasi harga aslinya nanti.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -580,18 +623,28 @@
 
             function calculateEstimasi() {
                 let total = 0;
+                let hasLainnya = false;
 
                 serviceCheckboxes.forEach(cb => {
                     if (cb.checked) {
                         total += parseFloat(cb.dataset.price) || 0;
+                        if (cb.value === 'Lainnya') {
+                            hasLainnya = true;
+                        }
                     }
                 });
 
                 sparepartSelect.find(':selected').each(function() {
-                    total += parseFloat($(this).data('price')) || 0;
+                    total += parseFloat($(this).attr('data-price')) || 0;
                 });
 
-                estimasiBiayaEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+                if (hasLainnya) {
+                    estimasiBiayaEl.textContent = 'Rp ' + total.toLocaleString('id-ID') + ' +';
+                    document.getElementById('alert-lainnya').classList.remove('hidden');
+                } else {
+                    estimasiBiayaEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+                    document.getElementById('alert-lainnya').classList.add('hidden');
+                }
             }
 
             serviceCheckboxes.forEach(cb => cb.addEventListener('change', calculateEstimasi));
@@ -614,6 +667,87 @@
 
             checkboxLainnya.addEventListener('change', toggleInputLainnya);
             toggleInputLainnya(); // Panggil saat awal dimuat (menjaga old input)
+
+            // Logika Filter Sparepart Berdasarkan Jasa yang Dipilih
+            const allSparepartOptions = $('#sparepart_diminta option').clone();
+
+            function updateSparepartDropdown() {
+                let keywords = [];
+                // Kata kunci yang mungkin terkait dengan layanan tertentu
+                const keywordMap = {
+                    'oli': ['oli', 'oil', 'pelumas'],
+                    'kampas': ['kampas', 'rem', 'pad', 'shoe', 'disc'],
+                    'rem': ['kampas', 'rem', 'pad', 'shoe', 'minyak', 'cakram', 'disc'],
+                    'ban': ['ban', 'tire', 'pentil', 'tubeless'],
+                    'busi': ['busi', 'spark'],
+                    'cvt': ['cvt', 'v-belt', 'roller', 'ganda', 'vbelt', 'belt'],
+                    'aki': ['aki', 'accu', 'baterai'],
+                    'filter': ['filter', 'saringan'],
+                    'rantai': ['rantai', 'gear', 'gir'],
+                    'gear': ['rantai', 'gear', 'gir'],
+                    'lampu': ['lampu', 'bohlam', 'bulb', 'led']
+                };
+
+                // Kumpulkan semua kata kunci dari jasa yang dicentang
+                $('.service-checkbox:checked').each(function() {
+                    if ($(this).val() === 'Lainnya') return;
+
+                    let serviceName = $(this).val().toLowerCase();
+
+                    // Cek map manual
+                    for (let key in keywordMap) {
+                        if (serviceName.includes(key)) {
+                            keywords = keywords.concat(keywordMap[key]);
+                        }
+                    }
+
+                    // Ambil kata-kata dari nama layanan juga (hindari kata umum)
+                    let words = serviceName.replace(/[^a-zA-Z0-9\s]/g, '').split(' ')
+                        .filter(w => w.length > 2 && !['ganti', 'pasang', 'servis', 'service', 'perbaikan',
+                            'benerin', 'cek', 'dan', 'atau', 'untuk'
+                        ].includes(w));
+                    keywords = keywords.concat(words);
+                });
+
+                // Hapus duplikat
+                keywords = [...new Set(keywords)];
+
+                let selectedValues = $('#sparepart_diminta').val() || [];
+                $('#sparepart_diminta').empty();
+
+                if (keywords.length === 0) {
+                    $('#sparepart_diminta').append(allSparepartOptions.clone());
+                } else {
+                    let optgroupRekomendasi = $('<optgroup label="Sesuai Layanan Pilihan"></optgroup>');
+                    let optgroupLainnya = $('<optgroup label="Sparepart Lainnya"></optgroup>');
+
+                    allSparepartOptions.each(function() {
+                        let spName = $(this).text().toLowerCase();
+                        let matches = keywords.some(kw => spName.includes(kw));
+
+                        if (matches) {
+                            optgroupRekomendasi.append($(this).clone());
+                        } else {
+                            optgroupLainnya.append($(this).clone());
+                        }
+                    });
+
+                    // Tambahkan ke dropdown
+                    if (optgroupRekomendasi.children().length > 0) {
+                        $('#sparepart_diminta').append(optgroupRekomendasi);
+                        $('#sparepart_diminta').append(optgroupLainnya);
+                    } else {
+                        $('#sparepart_diminta').append(allSparepartOptions.clone());
+                    }
+                }
+
+                // Kembalikan pilihan sebelumnya jika masih ada dan update Select2 UI
+                $('#sparepart_diminta').val(selectedValues).trigger('change.select2');
+            }
+
+            $('.service-checkbox').on('change', updateSparepartDropdown);
+            // Panggil sekali di awal untuk antisipasi old input (jika form validasi error)
+            updateSparepartDropdown();
 
             // Carousel / Slider Testimonial Vanilla JS
             const testimonialContainer = document.getElementById('testimonial-container');

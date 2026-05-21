@@ -6,7 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Area Pelanggan') - Putra Jaya Motor</title>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        /* Perbaikan untuk `position: sticky` yang bentrok dengan `overflow-x: hidden` dari library JS */
+        html, body {
+            overflow-x: clip !important;
+        }
+    </style>
     @yield('styles')
 </head>
 
@@ -16,12 +23,11 @@
     $firstName = $currentUser ? explode(' ', trim($currentUser->name))[0] : '';
 @endphp
 
-<body class="bg-slate-50 font-sans text-slate-800 antialiased">
-    <div x-data="{ mobileMenu: false }">
-        {{-- Navbar --}}
-        <nav class="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-lg">
-            <div class="container mx-auto flex items-center px-4 py-4">
-                {{-- Left: Brand/Logo --}}
+<body class="bg-slate-50 font-sans text-slate-800 antialiased" x-data="{ mobileMenu: false }">
+    {{-- Navbar --}}
+    <nav class="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-lg">
+        <div class="container mx-auto flex items-center px-4 py-4">
+            {{-- Left: Brand/Logo --}}
                 <div class="flex lg:w-1/4">
                     <a href="{{ route('landing') }}" class="flex items-center gap-3">
                         <div class="sidebar-brand-mark h-12 w-12 rounded-2xl text-sm">
@@ -229,10 +235,9 @@
         <main>
             @yield('content')
         </main>
-
-        {{-- Footer --}}
-        <footer class="border-t border-slate-200 bg-white/70 py-10 backdrop-blur lg:py-16">
-            <div class="container mx-auto px-4">
+    {{-- Footer --}}
+    <footer class="border-t border-slate-200 bg-white/70 py-10 backdrop-blur lg:py-16">
+        <div class="container mx-auto px-4">
                 <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
                     {{-- Info Bengkel --}}
                     <div class="space-y-4">
@@ -288,8 +293,17 @@
                     &copy; {{ date('Y') }} Putra Jaya Motor. All Rights Reserved.
                 </div>
             </div>
-        </footer>
-    </div>
+    </footer>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                once: true, // Animasi hanya berjalan sekali
+                duration: 800, // Durasi animasi dalam milidetik
+                easing: 'ease-out-cubic', // Jenis easing untuk animasi
+            });
+        });
+    </script>
     @yield('scripts')
 </body>
 
