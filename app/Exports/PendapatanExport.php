@@ -7,38 +7,39 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PendapatanExport implements FromView, ShouldAutoSize
+class PendapatanExport implements FromView, ShouldAutoSize, WithTitle
 {
-    protected $filter;
+    protected $startDate;
+    protected $endDate;
 
     // Nangkep filter dari controller
-    public function __construct($filter)
+    public function __construct($startDate, $endDate)
     {
-        $this->filter = $filter;
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+    }
+
+    public function title(): string
+    {
+        return 'Laporan Pendapatan';
     }
 
     public function view(): View
     {
-        $queryTransaksi = Transaksi::with(['pelanggan', 'mekanik'])->where('status_pembayaran', 'lunas');
+        $transaksi = Transaksi::with(['pelanggan', 'detailTransaksis.sparepart', 'mekanik', 'service'])
+            ->where('status_pembayaran', 'lunas')
+            ->whereBetween('tanggal', [$this->startDate, $this->endDate])
+            ->orderBy('tanggal', 'desc')
+            ->get();
 
-        // Atur filter tanggal
-        if ($this->filter == 'hari_ini') {
-            $queryTransaksi->whereDate('tanggal', Carbon::today());
-            $judulFilter = "Hari Ini (" . date('d M Y') . ")";
-        } elseif ($this->filter == 'bulan_ini') {
-            $queryTransaksi->whereMonth('tanggal', Carbon::now()->month)
-                           ->whereYear('tanggal', Carbon::now()->year);
-            $judulFilter = "Bulan Ini (" . date('M Y') . ")";
-        } else {
-            $queryTransaksi->whereYear('tanggal', Carbon::now()->year);
-            $judulFilter = "Tahun Ini (" . date('Y') . ")";
-        }
-
-        $transaksi = $queryTransaksi->get();
         $pendapatanTotal = $transaksi->sum('total_biaya');
+        $judulFilter = Carbon::parse($this->startDate)->format('d M Y') . ' - ' . Carbon::parse($this->endDate)->format('d M Y');
+
+        $isExcel = true;
 
         // Ngelempar data ke file Blade Excel
-        return view('dashboard.excel_laporan', compact('transaksi', 'pendapatanTotal', 'judulFilter'));
+        return view('laporan.cetak_laporan', compact('transaksi', 'pendapatanTotal', 'judulFilter', 'isExcel'));
     }
 }

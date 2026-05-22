@@ -199,20 +199,20 @@
             </table>
 
             @if (!isset($isExcel) || !$isExcel)
-            <div class="actions">
-                <button onclick="window.print()">Print</button>
-                <a href="{{ route('dashboard') }}">Kembali</a>
-            </div>
+                <div class="actions">
+                    <button onclick="window.print()">Print</button>
+                    <a href="{{ route('laporan.index') }}">Kembali</a>
+                </div>
             @endif
         </div>
     </div>
 
     @if (!isset($isExcel) || !$isExcel)
-    <script>
-        window.onload = function() {
-            window.print();
-        };
-    </script>
+        <script>
+            window.onload = function() {
+                window.print();
+            };
+        </script>
     @endif
 </body>
 

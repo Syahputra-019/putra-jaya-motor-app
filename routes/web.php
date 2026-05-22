@@ -36,10 +36,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/transaksi/{id}/bayar', [TransaksiController::class, 'bayar'])->name('transaksi.bayar');
     Route::post('/transaksi/{id}/upload-struk', [TransaksiController::class, 'uploadStruk'])->name('transaksi.uploadStruk');
 
+    Route::resource('/booking', BookingController::class);
+
     Route::middleware(['role:admin'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard/cetak', [DashboardController::class, 'cetak'])->name('dashboard.cetak');
-        Route::get('/dashboard/excel', [DashboardController::class, 'exportExcel'])->name('dashboard.excel');
+        Route::get('dashboard/cetak', [DashboardController::class, 'cetak'])->name('dashboard.cetak');
+        Route::get('dashboard/excel', [DashboardController::class, 'exportExcel'])->name('dashboard.excel');
         Route::resource('/sparepart', SparepartController::class);
         Route::resource('/mekanik', MekanikController::class);
         Route::resource('/pelanggan', PelangganController::class);
@@ -47,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('/transaksi', TransaksiController::class);
         Route::post('/transaksi/{id}/konfirmasi', [TransaksiController::class, 'konfirmasiPembayaran'])->name('transaksi.konfirmasi');
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
+        Route::get('/laporan/excel', [LaporanController::class, 'exportExcel'])->name('laporan.excel');
         Route::get('/data-komplain', [KomplainController::class, 'adminIndex'])->name('pelanggan.komplain.index');
         Route::post('/komplain/{id}/tanggapi', [KomplainController::class, 'tanggapi'])->name('komplain.tanggapi');
         Route::get('/testimonial', [TestimonialController::class, 'index'])->name('admin.testimonial.index');
@@ -61,7 +65,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['role:pelanggan'])->group(function () {
-        Route::resource('/booking', BookingController::class);
         Route::get('/my-booking', [BookingController::class, 'myBooking'])->name('booking.mine');
         Route::post('/booking/{booking}/konfirmasi-rekomendasi', [BookingController::class, 'konfirmasiRekomendasi'])->name('booking.konfirmasi_rekomendasi');
         Route::resource('komplain', KomplainController::class);

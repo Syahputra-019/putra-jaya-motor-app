@@ -19,10 +19,14 @@ use Illuminate\Support\Facades\Notification;
 
 class BookingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = Booking::with(['pelanggan', 'mekanik'])
-            ->where(function ($q) {
+        $query = Booking::with(['pelanggan', 'mekanik'])->orderBy('jadwal_booking', 'desc');
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        } else {
+            $query->where(function ($q) {
                 // Tampilkan hanya booking yang masih aktif di antrean
                 $q->whereIn('status', ['menunggu', 'diproses'])
                     // atau yang sudah selesai tapi belum dibuatkan transaksi kasir
@@ -30,13 +34,14 @@ class BookingController extends Controller
                         $sub->where('status', 'selesai')
                             ->whereDoesntHave('transaksi');
                     });
-            })->orderBy('jadwal_booking', 'desc');
+            });
+        }
 
         if (auth()->user()->role === 'pelanggan') {
             $query->where('user_id', auth()->id());
         }
 
-        $bookings = $query->paginate(10);
+        $bookings = $query->paginate(10)->withQueryString();
 
         return view('booking.index', compact('bookings'));
     }
@@ -149,8 +154,10 @@ class BookingController extends Controller
 
         // 2. Beritahu Mekanik jika saat awal booking mekanik sudah di-set
         if ($booking->mekanik_id) {
-            $mekanik = Mekanik::with('user')->find($booking->mekanik_id);
-            if ($mekanik && $mekanik->user) $mekanik->user->notify(new NewJobAssignedNotification($booking));
+            $mekanik = Mekanik::find($booking->mekanik_id);
+            if ($mekanik && $mekanik->user_id) {
+                User::find($mekanik->user_id)?->notify(new NewJobAssignedNotification($booking));
+            }
         }
 
         // 3. Beritahu Pelanggan via Notifikasi Database
@@ -163,6 +170,17 @@ class BookingController extends Controller
         }
 
         return redirect()->route('booking.index')->with('success', 'Booking berhasil dibuat!');
+    }
+
+    public function show(Booking $booking)
+    {
+        if (auth()->user()->role === 'pelanggan' && $booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $booking->load(['pelanggan', 'mekanik', 'transaksi']);
+
+        return view('booking.show', compact('booking'));
     }
 
     public function edit(Booking $booking)
@@ -204,7 +222,9 @@ class BookingController extends Controller
 
         // Cek Kuota Booking (Maksimal 5 motor per hari)
         $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
-        $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)->count();
+        $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)
+            ->where('id', '!=', $booking->id) // Jangan hitung booking yang sedang diedit
+            ->count();
         if ($jumlahBookingHariIni >= 5) {
             return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
         }
@@ -228,12 +248,17 @@ class BookingController extends Controller
         $booking->update($data);
 
         // Jika admin nge-assign / mengubah mekanik baru untuk booking ini
-        if ($booking->mekanik_id && $booking->mekanik_id !== $oldMekanikId) {
-            $mekanik = Mekanik::with('user')->find($booking->mekanik_id);
-            if ($mekanik && $mekanik->user) $mekanik->user->notify(new NewJobAssignedNotification($booking));
+        if ($booking->mekanik_id && $booking->mekanik_id != $oldMekanikId) { // Gunakan != agar string '1' dan integer 1 dianggap sama
+            $mekanik = Mekanik::find($booking->mekanik_id);
+            if ($mekanik && $mekanik->user_id) {
+                $userMekanik = User::find($mekanik->user_id);
+                if ($userMekanik) {
+                    $userMekanik->notify(new NewJobAssignedNotification($booking));
+                }
+            }
         }
 
-        return redirect()->back()->with('success', 'Status dan catatan servis berhasil diupdate!');
+        return redirect()->route('booking.index')->with('success', 'Status dan catatan servis berhasil diupdate!');
     }
 
     public function destroy(Booking $booking)
@@ -292,8 +317,10 @@ class BookingController extends Controller
         Notification::send($admins, new RekomendasiDijawabNotification($booking, $request->status_konfirmasi));
 
         if ($booking->mekanik_id) {
-            $mekanik = Mekanik::with('user')->find($booking->mekanik_id);
-            if ($mekanik && $mekanik->user) $mekanik->user->notify(new RekomendasiDijawabNotification($booking, $request->status_konfirmasi));
+            $mekanik = Mekanik::find($booking->mekanik_id);
+            if ($mekanik && $mekanik->user_id) {
+                User::find($mekanik->user_id)?->notify(new RekomendasiDijawabNotification($booking, $request->status_konfirmasi));
+            }
         }
 
         $pesan = $request->status_konfirmasi === 'approved' ? 'Mantap! Anda telah menyetujui rekomendasi perbaikan.' : 'Anda telah menolak rekomendasi perbaikan.';

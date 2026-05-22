@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\PendapatanExport;
 use App\Models\DetailTransaksi;
 use App\Models\Sparepart;
 use App\Models\Transaksi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Exports\DashboardExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class DashboardController extends Controller
@@ -87,35 +87,33 @@ class DashboardController extends Controller
 
     public function cetak(Request $request)
     {
-        $filter = $request->input('filter', 'bulan_ini'); 
-
-        // Tarik data transaksi lengkap sama detailnya (Cuma yang LUNAS)
-        $queryTransaksi = Transaksi::with(['pelanggan', 'detailTransaksis.sparepart', 'mekanik'])
-                                    ->where('status_pembayaran', 'lunas');
+        $filter = $request->input('filter', 'hari_ini'); 
+        $queryTransaksi = Transaksi::with(['pelanggan', 'mekanik'])->where('status_pembayaran', 'lunas');
 
         if ($filter == 'hari_ini') {
             $queryTransaksi->whereDate('tanggal', Carbon::today());
-            $judulFilter = date('d F Y'); // Contoh: 18 April 2026
+            $judulFilter = 'Hari Ini';
         } elseif ($filter == 'bulan_ini') {
             $queryTransaksi->whereMonth('tanggal', Carbon::now()->month)
                            ->whereYear('tanggal', Carbon::now()->year);
-            $judulFilter = 'Bulan ' . date('F Y'); // Contoh: Bulan April 2026
+            $judulFilter = 'Bulan Ini';
         } elseif ($filter == 'tahun_ini') {
             $queryTransaksi->whereYear('tanggal', Carbon::now()->year);
-            $judulFilter = 'Tahun ' . date('Y'); // Contoh: Tahun 2026
+            $judulFilter = 'Tahun Ini';
         }
 
         $transaksi = $queryTransaksi->get();
         $pendapatanTotal = $transaksi->sum('total_biaya');
+        $isExcel = false;
 
-        return view('dashboard.cetak_laporan', compact('transaksi', 'pendapatanTotal', 'judulFilter'));
+        return view('dashboard.cetak_laporan', compact('transaksi', 'pendapatanTotal', 'judulFilter', 'isExcel'));
     }
 
     public function exportExcel(Request $request)
     {
-        $filter = $request->input('filter', 'bulan_ini');
-        $filename = "Laporan_Pendapatan_" . date('d-m-Y') . ".xlsx";
+        $filter = $request->input('filter', 'hari_ini'); 
+        $filename = "Laporan_Dashboard_" . ucfirst($filter) . "_" . date('Ymd') . ".xlsx";
 
-        return Excel::download(new PendapatanExport($filter), $filename);
+        return Excel::download(new DashboardExport($filter), $filename);
     }
 }
