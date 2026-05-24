@@ -6,7 +6,7 @@
 <div class="container mx-auto max-w-4xl px-4 py-12">
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-slate-900">Detail Booking #{{ $booking->id }}</h1>
+            <h1 class="text-3xl font-bold text-slate-900">Detail Booking</h1>
             <p class="mt-2 text-slate-500">Dibuat pada {{ \Carbon\Carbon::parse($booking->created_at)->format('d M Y, H:i') }}</p>
         </div>
         <a href="{{ route('booking.mine', ['id' => $booking->id]) }}" class="btn-secondary">Kembali</a>
