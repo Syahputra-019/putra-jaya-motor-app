@@ -180,6 +180,10 @@ class BookingController extends Controller
 
         $booking->load(['pelanggan', 'mekanik', 'transaksi']);
 
+        if (auth()->user()->role === 'pelanggan') {
+            return view('user.booking.show', compact('booking'));
+        }
+
         return view('booking.show', compact('booking'));
     }
 
