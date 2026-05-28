@@ -586,7 +586,7 @@
     }
 
     .landing-hero {
-        @apply relative overflow-hidden pt-20;
+        @apply relative overflow-hidden pt-4;
     }
 
     .landing-hero-grid {
