@@ -93,7 +93,7 @@
 
                     <div class="landing-stat-grid">
                         <div class="landing-stat-card" data-aos="fade-left" data-aos-delay="200">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Queue</div>
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Queue que</div>
                             <div class="mt-2 text-3xl font-bold text-white">Rapi</div>
                             <p class="mt-2 text-sm text-slate-200">Admin, mekanik, dan pelanggan melihat alur yang
                                 sama.
