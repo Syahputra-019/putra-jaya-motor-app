@@ -43,10 +43,11 @@
         <div class="landing-container landing-hero-grid">
             <div data-aos="fade-up" data-aos-delay="150">
 
-                <h1 class="landing-title">Booking servis motor jadi lebih cepat, modern, dan nyaman dipantau.</h1>
+                <h1 class="landing-title">
+                    Booking Servis Motor Jadi Lebih Cepat & Transparan.
+                </h1>
                 <p class="landing-lead">
-                    Putra Jaya Motor membantu pelanggan booking tanpa ribet sekaligus memberi tim bengkel tampilan kerja
-                    yang lebih rapi, konsisten, dan profesional.
+                    Solusi digital Putra Jaya Motor untuk kemudahan reservasi jadwal servis tanpa antre serta pemantauan status perbaikan kendaraan secara langsung.
                 </p>
 
                 <div class="mt-8 flex flex-wrap gap-3">
@@ -59,20 +60,23 @@
                     <div class="surface-card-tight" data-aos="fade-right" data-aos-delay="200">
                         <div class="page-kicker">Keunggulan</div>
                         <div class="mt-2 text-xl font-bold text-slate-950">Booking Online</div>
-                        <p class="mt-2 text-sm leading-6 text-slate-500">Ambil antrean tanpa harus datang lebih dulu ke
-                            bengkel.</p>
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Reservasi jadwal servis dari mana saja tanpa perlu datang lebih awal.
+                        </p>
                     </div>
                     <div class="surface-card-tight" data-aos="fade-right" data-aos-delay="300">
                         <div class="page-kicker">Keunggulan</div>
-                        <div class="mt-2 text-xl font-bold text-slate-950">Status Real-time</div>
-                        <p class="mt-2 text-sm leading-6 text-slate-500">Pantau progres pengerjaan kendaraan dari satu
-                            halaman.</p>
+                        <div class="mt-2 text-xl font-bold text-slate-950">Live Tracking</div>
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Pantau langsung setiap tahapan progres perbaikan motor Anda.
+                        </p>
                     </div>
                     <div class="surface-card-tight" data-aos="fade-right" data-aos-delay="400">
                         <div class="page-kicker">Keunggulan</div>
-                        <div class="mt-2 text-xl font-bold text-slate-950">Pembayaran Fleksibel</div>
-                        <p class="mt-2 text-sm leading-6 text-slate-500">Dukungan pembayaran digital dan transfer
-                            manual.</p>
+                        <div class="mt-2 text-xl font-bold text-slate-950">E-Payment</div>
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Kemudahan transaksi melalui metode pembayaran digital yang aman.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -81,9 +85,12 @@
                 <div class="landing-spotlight-panel">
                     <div class="flex items-center justify-between gap-4">
                         <div>
-                            <p class="text-sm font-bold uppercase tracking-[0.24em] text-yellow-200">Operational View
+                            <p class="text-sm font-bold uppercase tracking-[0.24em] text-yellow-200">
+                                PLATFORM OPERASIONAL
                             </p>
-                            <h2 class="mt-2 text-3xl font-bold">Servis terasa lebih premium dari halaman pertama.</h2>
+                            <h2 class="mt-2 text-3xl font-bold">
+                                Pengalaman Servis Terbaik dalam Satu Sistem.
+                            </h2>
                         </div>
                         <div class="rounded-[26px] bg-white/10 px-4 py-3 text-center backdrop-blur">
                             <div class="text-3xl font-bold text-yellow-300">24/7</div>
@@ -93,27 +100,32 @@
 
                     <div class="landing-stat-grid">
                         <div class="landing-stat-card" data-aos="fade-left" data-aos-delay="200">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Queue</div>
-                            <div class="mt-2 text-3xl font-bold text-white">pjm</div>
-                            <p class="mt-2 text-sm text-slate-200">Admin, mekanik, dan pelanggan melihat alur yang
-                                sama.
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">INTEGRASI</div>
+                            <div class="mt-2 text-2xl font-bold text-white">Data Sinkron</div>
+                            <p class="mt-2 text-sm text-slate-200">
+                                Menghubungkan data pelanggan, mekanik, dan admin secara real-time.
                             </p>
                         </div>
                         <div class="landing-stat-card" data-aos="fade-left" data-aos-delay="300">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Design</div>
-                            <div class="mt-2 text-3xl font-bold text-white">Konsisten</div>
-                            <p class="mt-2 text-sm text-slate-200">Komponen, ukuran, dan jarak tampil seragam.</p>
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">EFISIENSI</div>
+                            <div class="mt-2 text-2xl font-bold text-white">Atur Antrean</div>
+                            <p class="mt-2 text-sm text-slate-200">
+                                Alur penanganan kendaraan terstruktur untuk meminimalkan waktu tunggu.
+                            </p>
                         </div>
                         <div class="landing-stat-card" data-aos="fade-left" data-aos-delay="400">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Palette</div>
-                            <div class="mt-2 text-3xl font-bold text-white">Navy</div>
-                            <p class="mt-2 text-sm text-slate-200">Warna utama biru tua dengan aksen kuning hangat.</p>
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">DATA ACCURACY</div>
+                            <div class="mt-2 text-2xl font-bold text-white">Log Servis</div>
+                            <p class="mt-2 text-sm text-slate-200">
+                                Riwayat servis dan pemakaian suku cadang tercatat dengan akurat.
+                            </p>
                         </div>
                         <div class="landing-stat-card" data-aos="fade-left" data-aos-delay="500">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Experience</div>
-                            <div class="mt-2 text-3xl font-bold text-white">Modern</div>
-                            <p class="mt-2 text-sm text-slate-200">Lebih bersih, fokus, dan enak dipakai di desktop
-                                maupun mobile.</p>
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-300">RESPONSIVE</div>
+                            <div class="mt-2 text-2xl font-bold text-white">Akses Mudah</div>
+                            <p class="mt-2 text-sm text-slate-200">
+                                Aplikasi nyaman diakses kapan saja baik melalui desktop maupun smartphone.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -300,9 +312,10 @@
             <div class="page-header">
                 <div class="page-header-split">
                     <p class="page-kicker">Layanan Utama</p>
-                    <h2 class="page-title">Bengkel yang terasa modern dari depan sampai operasional.</h2>
-                    <p class="page-description">Kami merancang ulang tampilan agar pengalaman pelanggan dan staf
-                        sama-sama terasa lebih premium, cepat, dan konsisten.</p>
+                    <h2 class="page-title">Layanan Perawatan Kendaraan Terbaik & Terintegrasi.</h2>
+                    <p class="page-description">
+                        Kami menyediakan berbagai pilihan servis utama yang didukung oleh sistem manajemen digital demi kenyamanan pelanggan dan efisiensi operasional bengkel.
+                    </p>
                 </div>
             </div>
 
@@ -310,20 +323,23 @@
                 <div class="feature-card" data-aos="fade-left" data-aos-delay="150">
                     <div class="feature-icon">01</div>
                     <h3 class="mt-5 text-2xl font-bold text-slate-950">Servis Berkala</h3>
-                    <p class="mt-3 text-sm leading-7 text-slate-500">Perawatan rutin mesin, CVT, rem, dan komponen
-                        penting lain agar motor tetap stabil dipakai harian.</p>
+                    <p class="mt-3 text-sm leading-7 text-slate-500">
+                        Perawatan rutin komponen vital kendaraan secara menyeluruh agar performa motor tetap optimal untuk mobilitas harian.
+                    </p>
                 </div>
                 <div class="feature-card" data-aos="fade-left" data-aos-delay="250">
                     <div class="feature-icon">02</div>
-                    <h3 class="mt-5 text-2xl font-bold text-slate-950">Ganti Oli dan Tune Up</h3>
-                    <p class="mt-3 text-sm leading-7 text-slate-500">Pilihan layanan cepat dengan harga jelas, form
-                        rapi, dan pencatatan transaksi yang lebih profesional.</p>
+                    <h3 class="mt-5 text-2xl font-bold text-slate-950">Oli & Tune Up</h3>
+                    <p class="mt-3 text-sm leading-7 text-slate-500">
+                        Layanan pemeliharaan cepat dengan transparansi harga serta pencatatan riwayat servis yang terautomasi.
+                    </p>
                 </div>
                 <div class="feature-card" data-aos="fade-left" data-aos-delay="350">
                     <div class="feature-icon">03</div>
-                    <h3 class="mt-5 text-2xl font-bold text-slate-950">Sparepart Berkualitas</h3>
-                    <p class="mt-3 text-sm leading-7 text-slate-500">Data stok, harga, dan transaksi part tampil lebih
-                        konsisten sehingga lebih mudah dikelola oleh admin.</p>
+                    <h3 class="mt-5 text-2xl font-bold text-slate-950">Suku Cadang Asli</h3>
+                    <p class="mt-3 text-sm leading-7 text-slate-500">
+                        Jaminan ketersediaan komponen berkualitas tinggi dengan sistem pemantauan stok gudang yang akurat.
+                    </p>
                 </div>
             </div>
         </div>
@@ -333,26 +349,27 @@
         <div class="landing-container" data-aos="fade-up" data-aos-delay="150">
             <div class="booking-shell">
                 <div class="booking-sidebar">
-                    <p class="page-kicker !text-yellow-200">Online Booking</p>
-                    <h2 class="mt-4 text-4xl font-bold">Atur jadwal servis dengan tampilan yang lebih meyakinkan.</h2>
+                    <p class="page-kicker !text-yellow-200">ONLINE BOOKING</p>
+                    <h2 class="mt-4 text-4xl font-bold">Reservasi Jadwal Servis Lebih Praktis.</h2>
                     <p class="mt-4 text-base leading-8 text-slate-200">
-                        Form booking kini tampil lebih bersih dan terstruktur. Pelanggan cukup isi data inti, lalu
-                        sistem akan mengirim tiket antrean ke WhatsApp.
+                        Cukup isi data kendaraan Anda untuk mendapatkan nomor antrean digital yang akan diproses secara otomatis oleh sistem..
                     </p>
 
                     <div class="mt-8 space-y-4">
                         <div class="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur"
                             data-aos="fade-up" data-aos-delay="250">
-                            <div class="text-sm font-bold uppercase tracking-[0.24em] text-yellow-300">Cepat</div>
-                            <p class="mt-2 text-sm leading-7 text-slate-200">Form ringkas, tidak membingungkan, dan
-                                nyaman diisi dari desktop maupun ponsel.</p>
+                            <div class="text-base font-bold uppercase tracking-[0.24em] text-yellow-300">CEPAT</div>
+                            <p class="mt-2 text-sm leading-7 text-slate-200">
+                                Pengisian formulir ringkas untuk mempersingkat waktu pendaftaran servis.
+                            </p>
                         </div>
                         <div class="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur"
                             data-aos="fade-up" data-aos-delay="350">
-                            <div class="text-sm font-bold uppercase tracking-[0.24em] text-yellow-300">Terkonfirmasi
+                            <div class="text-base font-bold uppercase tracking-[0.24em] text-yellow-300">TERKONFIRMASI
                             </div>
-                            <p class="mt-2 text-sm leading-7 text-slate-200">Pelanggan menerima bukti antrean via
-                                WhatsApp setelah data tersimpan.</p>
+                            <p class="mt-2 text-sm leading-7 text-slate-200">
+                                Tiket dan nomor antrean langsung dikirim ke WhatsApp Anda secara real-time.
+                            </p>
                         </div>
                     </div>
                 </div>
