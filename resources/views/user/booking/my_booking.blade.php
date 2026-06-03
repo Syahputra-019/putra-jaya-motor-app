@@ -52,12 +52,12 @@
                 <section class="surface-card overflow-visible">
                     <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
                         <div>
-                            <p class="page-kicker">Customer Tracking</p>
-                            <h1 class="mt-3 text-4xl font-bold text-slate-950 md:text-5xl">Pantau progres servis motor
-                                Anda tanpa buka panel admin.</h1>
+                            <p class="page-kicker">STATUS TRACKING</p>
+                            <h1 class="mt-3 text-4xl font-bold text-slate-950 md:text-5xl">
+                                Pantau Progres Servis Motor Anda Secara Real-Time.
+                            </h1>
                             <p class="mt-4 max-w-2xl text-base leading-8 text-slate-600">
-                                Halaman ini sekarang berdiri sendiri, lebih cocok untuk pelanggan, dan fokus menampilkan
-                                status booking dengan cara yang lebih nyaman dibaca.
+                                Halaman khusus bagi pelanggan untuk melacak setiap tahapan perbaikan kendaraan secara transparan, memberikan kepastian dan kenyamanan layanan.
                             </p>
 
                             <div class="mt-8 flex flex-wrap gap-3">
@@ -68,7 +68,7 @@
 
                         <div class="landing-spotlight">
                             <div class="landing-spotlight-panel">
-                                <p class="text-sm font-bold uppercase tracking-[0.24em] text-yellow-200">Halo,
+                                <p class="text-sm font-bold uppercase tracking-[0.24em] text-yellow-200">HALO,
                                     {{ auth()->user()->name }}</p>
                                 <h2 class="mt-3 text-3xl font-bold">{{ $headline }}</h2>
                                 <p class="mt-4 text-sm leading-7 text-slate-200">{{ $description }}</p>
@@ -83,9 +83,10 @@
                                     </div>
                                     <div class="landing-stat-card">
                                         <div class="text-xs uppercase tracking-[0.22em] text-slate-300">Akses</div>
-                                        <div class="mt-2 text-2xl font-bold text-white">Mandiri</div>
-                                        <p class="mt-2 text-sm text-slate-200">Halaman pelanggan tanpa sidebar
-                                            dashboard.</p>
+                                        <div class="mt-2 text-xl font-bold text-white">NOTIFIKASI</div>
+                                        <p class="mt-2 text-sm text-slate-200">
+                                            Pembaruan data terintegrasi langsung dari ruang mekanik secara instan.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
