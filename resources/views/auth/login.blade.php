@@ -14,24 +14,32 @@
         <div class="auth-grid" data-aos="fade-up" data-aos-delay="150">
             <div class="auth-showcase">
                 <div>
-                    <span class="auth-badge">Workshop Control</span>
-                    <h1 class="mt-6 text-5xl font-bold leading-tight">Masuk ke sistem bengkel dengan tampilan baru yang
-                        lebih modern.</h1>
+                    <span class="auth-badge">WORKSHOP MANAGEMENT</span>
+                    <h1 class="mt-6 text-5xl font-bold leading-tight">
+                        Pusat Kendali Bengkel Terintegrasi.
+                    </h1>
                     <p class="my-5 max-w-xl text-base leading-8 text-slate-200">
-                        Kelola booking, transaksi, stok sparepart, dan laporan dalam satu panel yang konsisten dengan
-                        nuansa biru tua dan aksen kuning.
+                        Platform terpadu untuk mengelola antrean servis, transaksi, dan inventaris suku cadang secara
+                        real-time dan efisien.
                     </p>
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-2">
-                    <div class="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur" data-aos="fade-up" data-aos-delay="200">
-                        <div class="text-3xl font-bold text-yellow-300">01</div>
-                        <p class="mt-2 text-sm text-slate-200">Workflow operasional lebih rapi dan enak dipantau.</p>
+                    <div class="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur" data-aos="fade-up"
+                        data-aos-delay="200">
+                        <div class="text-xl font-bold uppercase tracking-[0.22em] text-yellow-300">Efisiensi</div>
+                        <p class="mt-2 text-sm text-slate-200">
+                            Alur kerja bengkel lebih terstruktur, cepat, dan mudah
+                            dipantau.
+                        </p>
                     </div>
-                    <div class="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur" data-aos="fade-up" data-aos-delay="300">
-                        <div class="text-3xl font-bold text-yellow-300">02</div>
-                        <p class="mt-2 text-sm text-slate-200">Komponen visual seragam dari landing page sampai
-                            dashboard.</p>
+                    <div class="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur" data-aos="fade-up"
+                        data-aos-delay="300">
+                        <div class="text-xl font-bold uppercase tracking-[0.22em] text-yellow-300">Akurasi</div>
+                        <p class="mt-2 text-sm text-slate-200">
+                            Seluruh data pelanggan dan riwayat transaksi tersimpan
+                            aman secara terpusat.
+                        </p>
                     </div>
                 </div>
             </div>

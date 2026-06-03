@@ -14,27 +14,29 @@
         <div class="auth-grid" data-aos="fade-up" data-aos-delay="150">
             <div class="auth-showcase">
                 <div>
-                    <span class="auth-badge">Customer Access</span>
-                    <h1 class="mt-6 text-5xl font-bold leading-tight">Buat akun pelanggan untuk memantau servis motor
-                        dengan tampilan yang lebih rapi.</h1>
+                    <span class="auth-badge">PORTAL PELANGGAN</span>
+                    <h1 class="mt-6 text-5xl font-bold leading-tight">
+                        Akses Layanan Bengkel Lebih Cepat & Praktis.
+                    </h1>
                     <p class="my-5 max-w-xl text-base leading-8 text-slate-200">
-                        Setelah terdaftar, pelanggan dapat mengakses status booking dan melihat progres servis dari
-                        tampilan yang seragam dengan sistem internal.
+                        Daftarkan akun Anda untuk menikmati kemudahan pemesanan jadwal servis, pelacakan status kendaraan, dan akses riwayat transaksi secara terpadu.
                     </p>
                 </div>
 
                 <div class="space-y-4">
                     <div class="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur" data-aos="fade-up"
                         data-aos-delay="200">
-                        <div class="text-sm font-bold uppercase tracking-[0.22em] text-yellow-300">Benefit</div>
-                        <p class="mt-2 text-sm leading-7 text-slate-200">Akun pelanggan memudahkan tracking antrean,
-                            histori servis, dan proses pembayaran digital.</p>
+                        <div class="text-xl font-bold uppercase tracking-[0.22em] text-yellow-300">Kemudahan Tracking</div>
+                        <p class="mt-2 text-sm leading-7 text-slate-200">
+                            Lacak progres perbaikan motor dan status antrean Anda secara real-time dan transparan.
+                        </p>
                     </div>
                     <div class="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur" data-aos="fade-up"
                         data-aos-delay="300">
-                        <div class="text-sm font-bold uppercase tracking-[0.22em] text-yellow-300">Visual</div>
-                        <p class="mt-2 text-sm leading-7 text-slate-200">Semua tampilan sekarang memakai ritme spacing,
-                            warna, dan bentuk komponen yang sama.</p>
+                        <div class="text-xl font-bold uppercase tracking-[0.22em] text-yellow-300">Booking Tanpa Antre</div>
+                        <p class="mt-2 text-sm leading-7 text-slate-200">
+                            Lakukan reservasi jadwal servis dari mana saja tanpa perlu menunggu lama di bengkel.
+                        </p>
                     </div>
                 </div>
             </div>
