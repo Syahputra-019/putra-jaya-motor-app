@@ -1,10 +1,11 @@
 <x-layout>
     @php
-        $metodeLabel = [
-            'cash' => 'Tunai',
-            'transfer_manual' => 'Transfer Manual',
-            'midtrans' => 'Online Midtrans',
-        ][$transaksi->metode_pembayaran] ?? 'Belum Dipilih';
+        $metodeLabel =
+            [
+                'cash' => 'Tunai',
+                'transfer_manual' => 'Transfer Manual',
+                'midtrans' => 'Online Midtrans',
+            ][$transaksi->metode_pembayaran] ?? 'Belum Dipilih';
 
         if ($transaksi->status_pembayaran === 'belum_bayar') {
             $metodeLabel = 'Belum Dipilih';
@@ -115,21 +116,18 @@
                         <div class="surface-card">
                             <div class="feature-icon">M</div>
                             <h2 class="mt-5 text-2xl font-bold text-slate-950">Bayar otomatis</h2>
-                            <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan lewat
+                            <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan
+                                lewat
                                 QRIS, virtual account, e-wallet, dan metode digital lain.</p>
-                            <button id="pay-button" type="button"
-                                data-token-url="{{ route('transaksi.midtransToken', $transaksi->id) }}"
-                                disabled aria-busy="true"
-                                class="btn-primary mt-8 w-full">Bayar Sekarang via Midtrans</button>
-                            <p id="midtrans-hint" class="mt-4 text-sm leading-6 text-slate-500">
-                                Menyiapkan data pembayaran...
-                            </p>
+                            <button id="btn-bayar-midtrans" type="button" class="btn-primary mt-8 w-full">Bayar
+                                Sekarang via Midtrans</button>
                         </div>
                     @else
                         <div class="surface-card">
                             <div class="feature-icon">M</div>
                             <h2 class="mt-5 text-2xl font-bold text-slate-950">Pembayaran otomatis belum aktif</h2>
-                            <p class="mt-3 text-sm leading-7 text-slate-500">Midtrans belum tersedia untuk transaksi ini, jadi pembayaran tetap bisa dilanjutkan lewat transfer manual.</p>
+                            <p class="mt-3 text-sm leading-7 text-slate-500">Midtrans belum tersedia untuk transaksi
+                                ini, jadi pembayaran tetap bisa dilanjutkan lewat transfer manual.</p>
                         </div>
                     @endif
 
@@ -155,7 +153,6 @@
                             <button type="submit" class="btn-accent w-full">Kirim Bukti Transfer</button>
                         </form>
                     </div>
-
                 @elseif ($transaksi->status_pembayaran === 'menunggu_konfirmasi')
                     <div class="surface-card">
                         <div class="feature-icon">T</div>
@@ -180,9 +177,87 @@
     </div>
 
     @if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar')
-        <script async src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script async src="{{ $midtransConfig['snap_url'] }}" data-midtrans-snap
-            data-client-key="{{ $midtransConfig['client_key'] }}"></script>
-        @include('transaksi.partials.midtrans-checkout-script', ['initialCheckout' => $initialCheckout])
+        <script>
+            // Fungsi untuk memuat script eksternal HANYA ketika dibutuhkan (Lazy Load)
+            function loadExternalScript(url, clientKey = null) {
+                return new Promise((resolve, reject) => {
+                    if (document.querySelector(`script[src="${url}"]`)) {
+                        return resolve(); // Script sudah ada, langsung lanjut
+                    }
+                    const script = document.createElement('script');
+                    script.src = url;
+                    if (clientKey) script.setAttribute('data-client-key', clientKey);
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.body.appendChild(script);
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const btnBayar = document.getElementById('btn-bayar-midtrans');
+
+                if (btnBayar) {
+                    btnBayar.addEventListener('click', async function() {
+                        const originalText = btnBayar.innerHTML;
+                        btnBayar.innerHTML = 'Menyiapkan Pembayaran...';
+                        btnBayar.disabled = true;
+
+                        try {
+                            // 1. Muat library SweetAlert dan Midtrans di latar belakang
+                            await loadExternalScript("https://cdn.jsdelivr.net/npm/sweetalert2@11");
+                            await loadExternalScript("{{ $midtransConfig['snap_url'] }}",
+                                "{{ $midtransConfig['client_key'] }}");
+
+                            btnBayar.innerHTML = 'Memproses Token...';
+
+                            // 2. Lakukan pengambilan token
+                            const response = await fetch(
+                                "{{ route('transaksi.midtransToken', $transaksi->id) }}", {
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                });
+
+                            const data = await response.json();
+
+                            if (response.ok && data.snap_token) {
+                                window.snap.pay(data.snap_token, {
+                                    onSuccess: function(result) {
+                                        Swal.fire('Berhasil!', 'Pembayaran berhasil.',
+                                            'success').then(() => window.location.reload());
+                                    },
+                                    onPending: function(result) {
+                                        Swal.fire('Menunggu',
+                                                'Menunggu konfirmasi pembayaran Anda.', 'info')
+                                            .then(() => window.location.reload());
+                                    },
+                                    onError: function(result) {
+                                        Swal.fire('Gagal', 'Pembayaran gagal!', 'error');
+                                    },
+                                    onClose: function() {
+                                        console.log("Popup ditutup");
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Error', 'Gagal mendapatkan token: ' + (data.message ||
+                                    'Error tidak diketahui'), 'error');
+                            }
+                        } catch (error) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Error',
+                                    'Terjadi kesalahan koneksi ke server. Silakan coba lagi.', 'error');
+                            } else {
+                                alert('Terjadi kesalahan koneksi ke server. Silakan coba lagi.');
+                            }
+                        } finally {
+                            btnBayar.innerHTML = originalText;
+                            btnBayar.disabled = false;
+                        }
+                    });
+                }
+            });
+        </script>
     @endif
 </x-layout>
