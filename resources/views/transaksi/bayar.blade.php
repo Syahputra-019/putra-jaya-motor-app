@@ -259,5 +259,71 @@
                 }
             });
         </script>
+
+        {{-- <script>
+            // Fungsi untuk memuat script eksternal HANYA ketika dibutuhkan (Lazy Load)
+            function loadExternalScript(url, clientKey = null) {
+                return new Promise((resolve, reject) => {
+                    if (document.querySelector(`script[src="${url}"]`)) {
+                        return resolve(); // Script sudah ada, langsung lanjut
+                    }
+                    const script = document.createElement('script');
+                    script.src = url;
+                    if (clientKey) script.setAttribute('data-client-key', clientKey);
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.body.appendChild(script);
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const btnBayar = document.getElementById('btn-bayar-midtrans');
+
+                if (btnBayar) {
+                    btnBayar.addEventListener('click', async function() {
+                        const originalText = btnBayar.innerHTML;
+                        btnBayar.innerHTML = 'Menyiapkan Pembayaran...';
+                        btnBayar.disabled = true;
+
+                        try {
+                            // 1. Muat library SweetAlert di latar belakang
+                            await loadExternalScript("https://cdn.jsdelivr.net/npm/sweetalert2@11");
+
+                            btnBayar.innerHTML = 'Memproses Link Pembayaran...';
+
+                            // 2. Lakukan pengambilan token
+                            const response = await fetch(
+                                "{{ route('transaksi.midtransToken', $transaksi->id) }}", {
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                });
+
+                            const data = await response.json();
+
+                            if (response.ok && data.redirect_url) {
+                                // Redirect langsung ke halaman Midtrans
+                                window.location.href = data.redirect_url;
+                            } else {
+                                Swal.fire('Error', 'Gagal mendapatkan link pembayaran: ' + (data.message ||
+                                    'Error tidak diketahui'), 'error');
+                            }
+                        } catch (error) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Error',
+                                    'Terjadi kesalahan koneksi ke server. Silakan coba lagi.', 'error');
+                            } else {
+                                alert('Terjadi kesalahan koneksi ke server. Silakan coba lagi.');
+                            }
+                        } finally {
+                            btnBayar.innerHTML = originalText;
+                            btnBayar.disabled = false;
+                        }
+                    });
+                }
+            });
+        </script> --}}
     @endif
 </x-layout>
