@@ -114,6 +114,16 @@
                                     Status Servis
                                 </a>
 
+                                <a href="{{ route('pelanggan.pembayaran') }}"
+                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
+                                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h5M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                                    </svg>
+                                    Pembayaran
+                                </a>
+
                                 <a href="{{ route('pelanggan.riwayat') }}"
                                     class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-blue-600">
                                     <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24"
@@ -205,6 +215,8 @@
                             <a href="{{ route('booking.mine') }}"
                                 class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Status
                                 Servis</a>
+                            <a href="{{ route('pelanggan.pembayaran') }}"
+                                class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Pembayaran</a>
                             <a href="{{ route('pelanggan.riwayat') }}"
                                 class="block rounded-lg py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Riwayat
                                 Servis</a>

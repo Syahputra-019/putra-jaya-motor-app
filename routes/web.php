@@ -34,6 +34,8 @@ Route::post('register', [AuthController::class, 'register'])->name('register.pos
 Route::middleware(['auth'])->group(function () {
     Route::get('/transaksi/{id}/cetak', [TransaksiController::class, 'cetak'])->name('transaksi.cetak');
     Route::get('/transaksi/{id}/bayar', [TransaksiController::class, 'bayar'])->name('transaksi.bayar');
+    Route::get('/transaksi/{id}/struk', [TransaksiController::class, 'lihatStruk'])->name('transaksi.struk');
+    Route::get('/transaksi/{id}/midtrans-token', [TransaksiController::class, 'midtransToken'])->name('transaksi.midtransToken');
     Route::post('/transaksi/{id}/upload-struk', [TransaksiController::class, 'uploadStruk'])->name('transaksi.uploadStruk');
 
     Route::resource('/booking', BookingController::class);
@@ -68,6 +70,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-booking', [BookingController::class, 'myBooking'])->name('booking.mine');
         Route::post('/booking/{booking}/konfirmasi-rekomendasi', [BookingController::class, 'konfirmasiRekomendasi'])->name('booking.konfirmasi_rekomendasi');
         Route::resource('komplain', KomplainController::class);
+        Route::get('/pembayaran-saya', [TransaksiController::class, 'pembayaranSaya'])->name('pelanggan.pembayaran');
         Route::get('/riwayat-servis', [TransaksiController::class, 'riwayatServis'])->name('pelanggan.riwayat');
         Route::get('/beri-testimonial', [TestimonialController::class, 'create'])->name('testimonial.create');
         Route::post('/beri-testimonial', [TestimonialController::class, 'store'])->name('testimonial.store');

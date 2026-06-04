@@ -172,6 +172,7 @@
                                 </div>
                                 <div class="mt-3 flex flex-wrap gap-3">
                                     <a href="{{ route('booking.mine') }}" class="btn-secondary">Status Servis</a>
+                                    <a href="{{ route('pelanggan.pembayaran') }}" class="btn-primary">Pembayaran</a>
                                     <a href="{{ route('pelanggan.riwayat') }}" class="btn-warning !px-4 !py-2">Riwayat</a>
                                 </div>
                             </div>

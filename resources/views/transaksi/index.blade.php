@@ -30,11 +30,25 @@
                             <th>Mekanik</th>
                             <th>Total</th>
                             <th>Status Bayar</th>
+                            <th>Metode</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($transaksis as $transaksi)
+                            @php
+                                $metodeLabel = [
+                                    'cash' => 'Tunai',
+                                    'transfer_manual' => 'Transfer Manual',
+                                    'midtrans' => 'Online Midtrans',
+                                ][$transaksi->metode_pembayaran] ?? 'Belum Dipilih';
+
+                                if ($transaksi->status_pembayaran === 'belum_bayar') {
+                                    $metodeLabel = 'Belum Dipilih';
+                                } elseif ($transaksi->bukti_struk) {
+                                    $metodeLabel = 'Transfer Manual';
+                                }
+                            @endphp
                             <tr>
                                 <td class="font-semibold text-[color:var(--brand-navy-800)]">{{ $transaksi->kode_transaksi }}</td>
                                 <td>{{ \Carbon\Carbon::parse($transaksi->tanggal)->format('d M Y') }}</td>
@@ -53,11 +67,16 @@
                                     @endif
                                 </td>
                                 <td>
+                                    <span class="badge badge-info">{{ $metodeLabel }}</span>
+                                </td>
+                                <td>
                                     <div class="table-actions">
                                         @if ($transaksi->status_pembayaran === 'belum_bayar')
                                             <a href="{{ route('transaksi.bayar', $transaksi->id) }}" class="btn-primary !px-4 !py-2">Bayar</a>
                                         @elseif ($transaksi->status_pembayaran === 'menunggu_konfirmasi')
-                                            <a href="{{ asset('storage/struk_transfer/' . $transaksi->bukti_struk) }}" target="_blank" class="btn-secondary !px-4 !py-2">Lihat Struk</a>
+                                            @if ($transaksi->bukti_struk)
+                                                <a href="{{ asset('storage/struk_transfer/' . $transaksi->bukti_struk) }}" target="_blank" class="btn-secondary !px-4 !py-2">Lihat Struk</a>
+                                            @endif
                                             <form action="{{ route('transaksi.konfirmasi', $transaksi->id) }}" method="POST" class="inline-block">
                                                 @csrf
                                                 <button type="submit" class="btn-accent !px-4 !py-2"
@@ -79,7 +98,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7">
+                                <td colspan="8">
                                     <div class="empty-state my-4">
                                         <div class="empty-state-icon">TR</div>
                                         <h3 class="text-xl font-bold text-slate-950">Belum ada transaksi</h3>

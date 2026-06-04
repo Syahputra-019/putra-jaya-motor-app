@@ -128,6 +128,35 @@ class TransaksiFlowTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_payment_page_loads_midtrans_snap_script_when_configured(): void
+    {
+        config()->set('services.midtrans.server_key', 'SB-Mid-server-test');
+        config()->set('services.midtrans.client_key', 'SB-Mid-client-test');
+        config()->set('services.midtrans.is_production', false);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        [$booking, $service, $sparepart, $mekanik, $pelanggan] = $this->makeBookingFixture();
+
+        $transaksi = Transaksi::create([
+            'booking_id' => $booking->id,
+            'kode_transaksi' => 'TRX-SNAP-001',
+            'tanggal' => now()->format('Y-m-d'),
+            'pelanggan_id' => $pelanggan->id,
+            'mekanik_id' => $mekanik->id,
+            'service_id' => $service->id,
+            'keluhan' => 'Tes render script Midtrans',
+            'status' => 'selesai',
+            'total_biaya' => $service->harga + $sparepart->harga,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('transaksi.bayar', $transaksi->id))
+            ->assertOk()
+            ->assertSee('https://app.sandbox.midtrans.com/snap/snap.js', false)
+            ->assertSee('data-client-key="SB-Mid-client-test"', false)
+            ->assertSee(route('transaksi.midtransToken', $transaksi->id), false);
+    }
+
     private function makeBookingFixture(bool $includeCustomerUser = false): array
     {
         $customerUser = User::factory()->create(['role' => 'pelanggan']);

@@ -13,6 +13,7 @@ use App\Support\BookingTransactionBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -277,35 +278,14 @@ class TransaksiController extends Controller
     {
         $transaksi = Transaksi::with(['pelanggan', 'detailTransaksis.sparepart', 'service', 'booking'])->findOrFail($id);
         $this->authorizeTransactionAccess($transaksi);
-        $midtransEnabled = filled(env('MIDTRANS_SERVER_KEY')) && filled(env('MIDTRANS_CLIENT_KEY'));
+        $midtransConfig = $this->midtransClientConfig();
+        $midtransEnabled = $midtransConfig['enabled'];
 
-        if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar' && empty($transaksi->snap_token)) {
-            try {
-                \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-                \Midtrans\Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
-                \Midtrans\Config::$isSanitized = true;
-                \Midtrans\Config::$is3ds = true;
-
-                $params = [
-                    'transaction_details' => [
-                        'order_id' => $transaksi->kode_transaksi . '-' . time(),
-                        'gross_amount' => $transaksi->total_biaya,
-                    ],
-                    'customer_details' => [
-                        'first_name' => $transaksi->pelanggan->nama_pelanggan ?? 'Pelanggan Umum',
-                    ],
-                ];
-
-                $snapToken = \Midtrans\Snap::getSnapToken($params);
-                $transaksi->snap_token = $snapToken;
-                $transaksi->save();
-            } catch (\Throwable $e) {
-                Log::error('Gagal membuat Snap Token Midtrans: ' . $e->getMessage());
-                session()->flash('error', 'Pembayaran otomatis sedang tidak tersedia. Silakan gunakan transfer manual.');
-            }
+        if (auth()->user()?->role === 'pelanggan') {
+            return view('user.payment.bayar', compact('transaksi', 'midtransEnabled', 'midtransConfig'));
         }
 
-        return view('transaksi.bayar', compact('transaksi', 'midtransEnabled'));
+        return view('transaksi.bayar', compact('transaksi', 'midtransEnabled', 'midtransConfig'));
     }
 
     public function uploadStruk(Request $request, $id)
@@ -325,9 +305,10 @@ class TransaksiController extends Controller
             $file = $request->file('bukti_struk');
             $nama_file = time() . '_' . $file->getClientOriginalName();
 
-            // Simpan ke storage publik agar struk bisa diakses dari halaman transaksi.
-            $file->storeAs('public/struk_transfer', $nama_file);
+            // Simpan ke disk public dengan path yang benar agar konsisten dengan viewer baru.
+            $file->storeAs('struk_transfer', $nama_file, 'public');
 
+            $transaksi->metode_pembayaran = 'transfer_manual';
             $transaksi->status_pembayaran = 'menunggu_konfirmasi';
             $transaksi->bukti_struk = $nama_file;
             $transaksi->save();
@@ -340,11 +321,72 @@ class TransaksiController extends Controller
         return back()->with('error', 'Gagal mengupload struk.');
     }
 
+    public function lihatStruk($id)
+    {
+        $transaksi = Transaksi::with(['pelanggan', 'booking'])->findOrFail($id);
+        $this->authorizeTransactionAccess($transaksi);
+
+        if (!$transaksi->bukti_struk) {
+            return back()->with('error', 'Bukti struk belum tersedia.');
+        }
+
+        $path = 'struk_transfer/' . $transaksi->bukti_struk;
+        $mimeType = 'image/jpeg';
+        $base64 = null;
+
+        if (Storage::disk('public')->exists($path)) {
+            $mimeType = Storage::disk('public')->mimeType($path) ?: 'image/jpeg';
+            $base64 = base64_encode(Storage::disk('public')->get($path));
+        } else {
+            $legacyPath = public_path('struk_transfer/' . $transaksi->bukti_struk);
+
+            if (!is_file($legacyPath)) {
+                return back()->with('error', 'File struk tidak ditemukan di server.');
+            }
+
+            $mimeType = mime_content_type($legacyPath) ?: 'image/jpeg';
+            $base64 = base64_encode(file_get_contents($legacyPath));
+        }
+
+        return view('transaksi.struk', compact('transaksi', 'base64', 'mimeType'));
+    }
+
+    public function midtransToken(Request $request, $id)
+    {
+        $transaksi = Transaksi::with(['pelanggan', 'detailTransaksis.sparepart', 'service', 'booking'])->findOrFail($id);
+        $this->authorizeTransactionAccess($transaksi);
+
+        if ($transaksi->status_pembayaran !== 'belum_bayar') {
+            return response()->json(['message' => 'Transaksi ini sudah tidak memerlukan token pembayaran.'], 422);
+        }
+
+        if ((int) $transaksi->total_biaya <= 0) {
+            return response()->json(['message' => 'Total tagihan harus lebih dari Rp 0 untuk dibayar via Midtrans.'], 422);
+        }
+
+        $checkout = $this->generateMidtransCheckout($transaksi, $request->boolean('refresh'));
+
+        if (!$checkout) {
+            return response()->json(['message' => 'Midtrans belum siap. Coba lagi sebentar.'], 503);
+        }
+
+        return response()->json([
+            'snap_token' => $checkout['snap_token'],
+            'redirect_url' => $checkout['redirect_url'],
+        ]);
+    }
+
     public function callback(Request $request)
     {
         Log::info('Webhook Midtrans Masuk Bro: ', $request->all());
 
-        $serverKey = env('MIDTRANS_SERVER_KEY');
+        $serverKey = config('services.midtrans.server_key');
+
+        if (blank($serverKey)) {
+            Log::error('Webhook Midtrans diterima, tetapi MIDTRANS_SERVER_KEY belum diatur.');
+            return response()->json(['message' => 'Konfigurasi Midtrans belum lengkap'], 500);
+        }
+
         $grossAmount = $request->gross_amount;
         $hashed = hash('sha512', $request->order_id . $request->status_code . $grossAmount . $serverKey);
 
@@ -362,7 +404,7 @@ class TransaksiController extends Controller
 
             if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
                 Log::info('Proses update status jadi LUNAS untuk transaksi: ' . $kodeTransaksi);
-                $this->settleTransaksi($transaksi->id);
+                $this->settleTransaksi($transaksi->id, 'midtrans');
                 Log::info('Settle Transaksi Berhasil Dieksekusi!');
             } elseif (in_array($request->transaction_status, ['cancel', 'deny', 'expire'])) {
                 $transaksi->status_pembayaran = 'belum_bayar';
@@ -379,7 +421,8 @@ class TransaksiController extends Controller
     public function konfirmasiPembayaran($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        $this->settleTransaksi($transaksi->id);
+        $metodePembayaran = $transaksi->bukti_struk ? 'transfer_manual' : null;
+        $this->settleTransaksi($transaksi->id, $metodePembayaran);
 
         return redirect()->back()->with('success', 'Mantap! Pembayaran di-ACC, stok sparepart otomatis terpotong, dan nota telah dikirim via WhatsApp.');
     }
@@ -468,13 +511,13 @@ class TransaksiController extends Controller
         curl_close($curl);
     }
 
-    private function settleTransaksi(int $transaksiId): void
+    private function settleTransaksi(int $transaksiId, ?string $metodePembayaran = null): void
     {
         try {
             $lowStockSpareparts = [];
             $shouldSendNota = false;
 
-            $transaksi = DB::transaction(function () use ($transaksiId, &$lowStockSpareparts, &$shouldSendNota) {
+            $transaksi = DB::transaction(function () use ($transaksiId, $metodePembayaran, &$lowStockSpareparts, &$shouldSendNota) {
                 $transaksi = Transaksi::with(['detailTransaksis', 'pelanggan', 'mekanik', 'service', 'booking'])
                     ->lockForUpdate()
                     ->findOrFail($transaksiId);
@@ -494,6 +537,10 @@ class TransaksiController extends Controller
                             $lowStockSpareparts[] = $sparepart->fresh();
                         }
                     }
+                }
+
+                if ($metodePembayaran) {
+                    $transaksi->metode_pembayaran = $metodePembayaran;
                 }
 
                 $transaksi->status_pembayaran = 'lunas';
@@ -534,6 +581,111 @@ class TransaksiController extends Controller
         }
     }
 
+    private function generateMidtransCheckout(Transaksi $transaksi, bool $forceNew = false): ?array
+    {
+        if (!$forceNew && filled($transaksi->snap_token) && $transaksi->updated_at?->gt(now()->subHours(12))) {
+            return [
+                'snap_token' => $transaksi->snap_token,
+                'redirect_url' => $this->midtransRedirectUrl($transaksi->snap_token),
+            ];
+        }
+
+        try {
+            $serverKey = config('services.midtrans.server_key');
+
+            if (blank($serverKey)) {
+                throw new \RuntimeException('MIDTRANS_SERVER_KEY belum diatur.');
+            }
+
+            \Midtrans\Config::$serverKey = $serverKey;
+            \Midtrans\Config::$isProduction = $this->midtransIsProduction();
+            \Midtrans\Config::$isSanitized = true;
+            \Midtrans\Config::$is3ds = true;
+
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $transaksi->kode_transaksi . '-' . now()->format('YmdHis') . strtoupper(Str::random(4)),
+                    'gross_amount' => (int) $transaksi->total_biaya,
+                ],
+                'customer_details' => [
+                    'first_name' => $transaksi->pelanggan->nama_pelanggan ?? 'Pelanggan Umum',
+                ],
+            ];
+
+            $response = \Midtrans\Snap::createTransaction($params);
+            $transaksi->snap_token = $response->token;
+            $transaksi->save();
+
+            return [
+                'snap_token' => $response->token,
+                'redirect_url' => $response->redirect_url,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Gagal membuat Snap Token Midtrans: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function midtransRedirectUrl(string $snapToken): string
+    {
+        return $this->midtransBaseUrl() . '/snap/v2/vtweb/' . $snapToken;
+    }
+
+    private function midtransClientConfig(): array
+    {
+        $clientKey = config('services.midtrans.client_key');
+        $serverKey = config('services.midtrans.server_key');
+
+        return [
+            'enabled' => filled($serverKey) && filled($clientKey),
+            'client_key' => $clientKey,
+            'is_production' => $this->midtransIsProduction(),
+            'snap_url' => $this->midtransBaseUrl() . '/snap/snap.js',
+        ];
+    }
+
+    private function midtransBaseUrl(): string
+    {
+        return $this->midtransIsProduction()
+            ? 'https://app.midtrans.com'
+            : 'https://app.sandbox.midtrans.com';
+    }
+
+    private function midtransIsProduction(): bool
+    {
+        return filter_var(config('services.midtrans.is_production', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    public function pembayaranSaya()
+    {
+        $user = auth()->user();
+        $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+
+        if (!$pelanggan) {
+            return redirect()->route('profile.edit')->withErrors([
+                'pelanggan' => 'Lengkapi data pelanggan terlebih dahulu.',
+            ]);
+        }
+
+        $baseQuery = $this->customerTransactionsQuery($user, $pelanggan);
+
+        $summary = [
+            'total_tagihan' => (clone $baseQuery)
+                ->whereIn('status_pembayaran', ['belum_bayar', 'menunggu_konfirmasi'])
+                ->sum('total_biaya'),
+            'belum_bayar' => (clone $baseQuery)->where('status_pembayaran', 'belum_bayar')->count(),
+            'menunggu_konfirmasi' => (clone $baseQuery)->where('status_pembayaran', 'menunggu_konfirmasi')->count(),
+            'lunas' => (clone $baseQuery)->where('status_pembayaran', 'lunas')->count(),
+        ];
+
+        $transaksis = $baseQuery
+            ->latest()
+            ->paginate(8)
+            ->withQueryString();
+
+        return view('user.payment.index', compact('transaksis', 'summary'));
+    }
+
     public function riwayatServis()
     {
         $user = auth()->user();
@@ -543,24 +695,28 @@ class TransaksiController extends Controller
             return redirect()->back()->with('error', 'Data pelanggan tidak ditemukan.');
         }
 
-        // Menggunakan eager loading (with) agar tidak terjadi N+1 query problem
-        $transaksis = Transaksi::with(['mekanik', 'service', 'detailTransaksis.sparepart', 'booking'])
-            ->where(function ($query) use ($pelanggan, $user) {
-                // 1. Cocokkan dengan pelanggan_id user saat ini
-                $query->where('pelanggan_id', $pelanggan->id)
-                    // 2. Transaksi dari booking milik user (jika admin lupa ubah dropdown pelanggan)
-                    ->orWhereHas('booking', function ($q) use ($user) {
-                        $q->where('user_id', $user->id);
-                    })
-                    // 3. Transaksi saat user masih jadi Guest (dicocokkan lewat nomor WA yang sama)
-                    ->orWhereHas('pelanggan', function ($q) use ($pelanggan) {
-                        $q->where('no_telp', $pelanggan->no_telp)->whereNotNull('no_telp');
-                    });
-            })
+        $transaksis = $this->customerTransactionsQuery($user, $pelanggan)
             ->latest()
             ->get();
 
         return view('user.history.riwayat-servis', compact('transaksis'));
+    }
+
+    private function customerTransactionsQuery($user, Pelanggan $pelanggan)
+    {
+        return Transaksi::with(['pelanggan', 'mekanik', 'service', 'detailTransaksis.sparepart', 'booking'])
+            ->where(function ($query) use ($pelanggan, $user) {
+                $query->where('pelanggan_id', $pelanggan->id)
+                    ->orWhereHas('booking', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    });
+
+                if (filled($pelanggan->no_telp)) {
+                    $query->orWhereHas('pelanggan', function ($q) use ($pelanggan) {
+                        $q->where('no_telp', $pelanggan->no_telp)->whereNotNull('no_telp');
+                    });
+                }
+            });
     }
 
     private function authorizeTransactionAccess(Transaksi $transaksi): void

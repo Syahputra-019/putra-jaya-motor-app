@@ -21,6 +21,10 @@ class Transaksi extends Model
         'keluhan',
         'status',
         'total_biaya',
+        'metode_pembayaran',
+        'status_pembayaran',
+        'bukti_struk',
+        'snap_token',
     ];
 
     protected $casts = [

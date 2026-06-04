@@ -1,4 +1,22 @@
 <x-layout>
+    @php
+        $metodeLabel = [
+            'cash' => 'Tunai',
+            'transfer_manual' => 'Transfer Manual',
+            'midtrans' => 'Online Midtrans',
+        ][$transaksi->metode_pembayaran] ?? 'Belum Dipilih';
+
+        if ($transaksi->status_pembayaran === 'belum_bayar') {
+            $metodeLabel = 'Belum Dipilih';
+        } elseif ($transaksi->bukti_struk) {
+            $metodeLabel = 'Transfer Manual';
+        }
+    @endphp
+
+    @php
+        $initialCheckout = null;
+    @endphp
+
     <div class="page-shell-md">
         <div class="page-header">
             <div class="page-header-split">
@@ -11,7 +29,7 @@
         </div>
 
         <div class="surface-card">
-            <div class="grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-3">
+            <div class="grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-4">
                 <div>
                     <div class="page-kicker">Total Tagihan</div>
                     <div class="mt-2 text-3xl font-bold text-slate-950">Rp
@@ -29,6 +47,12 @@
                             class="badge {{ $transaksi->status_pembayaran === 'lunas' ? 'badge-success' : 'badge-warning' }}">
                             {{ str_replace('_', ' ', $transaksi->status_pembayaran) }}
                         </span>
+                    </div>
+                </div>
+                <div>
+                    <div class="page-kicker">Metode</div>
+                    <div class="mt-2">
+                        <span class="badge badge-info">{{ $metodeLabel }}</span>
                     </div>
                 </div>
             </div>
@@ -87,13 +111,19 @@
 
             <div class="space-y-6">
                 @if ($transaksi->status_pembayaran === 'belum_bayar')
-                    @if ($midtransEnabled && $transaksi->snap_token)
+                    @if ($midtransEnabled)
                         <div class="surface-card">
                             <div class="feature-icon">M</div>
                             <h2 class="mt-5 text-2xl font-bold text-slate-950">Bayar otomatis</h2>
                             <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan lewat
                                 QRIS, virtual account, e-wallet, dan metode digital lain.</p>
-                            <button id="pay-button" class="btn-primary mt-8 w-full">Bayar Sekarang via Midtrans</button>
+                            <button id="pay-button" type="button"
+                                data-token-url="{{ route('transaksi.midtransToken', $transaksi->id) }}"
+                                disabled aria-busy="true"
+                                class="btn-primary mt-8 w-full">Bayar Sekarang via Midtrans</button>
+                            <p id="midtrans-hint" class="mt-4 text-sm leading-6 text-slate-500">
+                                Menyiapkan data pembayaran...
+                            </p>
                         </div>
                     @else
                         <div class="surface-card">
@@ -125,6 +155,7 @@
                             <button type="submit" class="btn-accent w-full">Kirim Bukti Transfer</button>
                         </form>
                     </div>
+
                 @elseif ($transaksi->status_pembayaran === 'menunggu_konfirmasi')
                     <div class="surface-card">
                         <div class="feature-icon">T</div>
@@ -148,66 +179,10 @@
         </div>
     </div>
 
-    @if ($midtransEnabled && $transaksi->snap_token)
-        <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
-        <script>
-            const payButton = document.getElementById('pay-button');
-
-            if (payButton) {
-                payButton.onclick = function() {
-                    Swal.fire({
-                        title: 'Menghubungkan ke Midtrans...',
-                        text: 'Mohon tunggu sebentar, sedang menyiapkan halaman pembayaran.',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading()
-                        }
-                    });
-
-                    snap.pay('{{ $transaksi->snap_token }}', {
-                        onSuccess: function(result) {
-                            Swal.fire({
-                                title: 'Pembayaran Berhasil!',
-                                text: 'Terima kasih, pembayaran telah kami terima.',
-                                icon: 'success',
-                                confirmButtonColor: '#0d1f3a',
-                                confirmButtonText: 'Lihat Struk'
-                            }).then((swalResult) => {
-                                window.location.href = "{{ route('transaksi.cetak', $transaksi->id) }}";
-                            });
-                        },
-                        onPending: function(result) {
-                            Swal.fire({
-                                title: 'Menunggu Pembayaran',
-                                text: 'Silakan selesaikan instruksi pembayaran Anda.',
-                                icon: 'info',
-                                confirmButtonColor: '#0d1f3a',
-                                confirmButtonText: 'Tutup'
-                            });
-                        },
-                        onError: function(result) {
-                            Swal.fire({
-                                title: 'Pembayaran Gagal!',
-                                text: 'Maaf, terjadi kesalahan saat memproses pembayaran.',
-                                icon: 'error',
-                                confirmButtonColor: '#e11d48',
-                                confirmButtonText: 'Tutup'
-                            });
-                        },
-                        onClose: function() {
-                            Swal.close();
-
-                            Swal.fire({
-                                title: 'Pembayaran Tertunda',
-                                text: 'Anda menutup halaman sebelum menyelesaikan pembayaran.',
-                                icon: 'warning',
-                                confirmButtonColor: '#0d1f3a',
-                                confirmButtonText: 'Tutup'
-                            });
-                        }
-                    });
-                };
-            }
-        </script>
+    @if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar')
+        <script async src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script async src="{{ $midtransConfig['snap_url'] }}" data-midtrans-snap
+            data-client-key="{{ $midtransConfig['client_key'] }}"></script>
+        @include('transaksi.partials.midtrans-checkout-script', ['initialCheckout' => $initialCheckout])
     @endif
 </x-layout>
