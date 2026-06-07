@@ -237,6 +237,16 @@ class TransaksiController extends Controller
             return $transaksi;
         });
 
+        // Pre-generate Snap Token Midtrans agar siap saat diakses pelanggan
+        try {
+            $midtransConfig = $this->midtransClientConfig();
+            if ($midtransConfig['enabled'] && $transaksi->total_biaya > 0) {
+                $this->generateMidtransCheckout($transaksi);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Gagal pre-generate token saat store transaksi: " . $e->getMessage());
+        }
+
         return redirect()->route('transaksi.bayar', $transaksi->id)->with('success', 'Transaksi berhasil dicatat! Silakan selesaikan pembayaran.');
     }
 

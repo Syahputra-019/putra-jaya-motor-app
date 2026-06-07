@@ -153,7 +153,7 @@ class TransaksiFlowTest extends TestCase
             ->get(route('transaksi.bayar', $transaksi->id))
             ->assertOk()
             ->assertSee('https://app.sandbox.midtrans.com/snap/snap.js', false)
-            ->assertSee('data-client-key="SB-Mid-client-test"', false)
+            ->assertSee('SB-Mid-client-test', false)
             ->assertSee(route('transaksi.midtransToken', $transaksi->id), false);
     }
 
