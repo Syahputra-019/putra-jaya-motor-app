@@ -5,7 +5,7 @@
 @section('content')
     <section class="pb-16 pt-10">
         <div class="container mx-auto max-w-6xl px-4">
-            <div class="mb-6 page-header">
+            <div class="page-header mb-6">
                 <div class="page-header-split">
                     <p class="page-kicker">Payment Center</p>
                     <h1 class="page-title">Pembayaran saya</h1>
@@ -62,25 +62,28 @@
                     @foreach ($transaksis as $transaksi)
                         @php
                             $status = $transaksi->status_pembayaran ?? 'belum_bayar';
-                            $statusLabel = [
-                                'belum_bayar' => 'Belum Bayar',
-                                'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
-                                'lunas' => 'Lunas',
-                                'gagal' => 'Gagal',
-                            ][$status] ?? ucfirst(str_replace('_', ' ', $status));
+                            $statusLabel =
+                                [
+                                    'belum_bayar' => 'Belum Bayar',
+                                    'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+                                    'lunas' => 'Lunas',
+                                    'gagal' => 'Gagal',
+                                ][$status] ?? ucfirst(str_replace('_', ' ', $status));
 
-                            $statusClass = [
-                                'belum_bayar' => 'badge-warning',
-                                'menunggu_konfirmasi' => 'badge-info',
-                                'lunas' => 'badge-success',
-                                'gagal' => 'badge-danger',
-                            ][$status] ?? 'badge-neutral';
+                            $statusClass =
+                                [
+                                    'belum_bayar' => 'badge-warning',
+                                    'menunggu_konfirmasi' => 'badge-info',
+                                    'lunas' => 'badge-success',
+                                    'gagal' => 'badge-danger',
+                                ][$status] ?? 'badge-neutral';
 
-                            $metodeLabel = [
-                                'cash' => 'Admin Kasir',
-                                'transfer_manual' => 'Transfer Manual',
-                                'midtrans' => 'Online Midtrans',
-                            ][$transaksi->metode_pembayaran] ?? 'Belum Dipilih';
+                            $metodeLabel =
+                                [
+                                    'cash' => 'Admin Kasir',
+                                    'transfer_manual' => 'Transfer Manual',
+                                    'midtrans' => 'Online Midtrans',
+                                ][$transaksi->metode_pembayaran] ?? 'Belum Dipilih';
 
                             if ($status === 'belum_bayar') {
                                 $metodeLabel = 'Belum Dipilih';
@@ -100,7 +103,8 @@
                                     <div class="mt-4 grid gap-4 md:grid-cols-4">
                                         <div>
                                             <div class="page-kicker">Kode</div>
-                                            <div class="mt-2 font-bold text-slate-950">{{ $transaksi->kode_transaksi }}</div>
+                                            <div class="mt-2 font-bold text-slate-950">{{ $transaksi->kode_transaksi }}
+                                            </div>
                                         </div>
                                         <div>
                                             <div class="page-kicker">Tanggal</div>
@@ -113,7 +117,8 @@
                                             <div class="mt-2 font-semibold text-slate-800">
                                                 {{ $transaksi->booking->tipe_motor ?? '-' }}
                                             </div>
-                                            <div class="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                            <div
+                                                class="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                                                 {{ $transaksi->booking->plat_nomor ?? 'Tanpa plat' }}
                                             </div>
                                         </div>
@@ -144,18 +149,9 @@
                                     @if ($status === 'belum_bayar')
                                         <a href="{{ route('transaksi.bayar', $transaksi->id) }}"
                                             class="btn-primary inline-flex justify-center">Bayar Online</a>
-                                        <a href="{{ route('transaksi.bayar', $transaksi->id) }}"
-                                            class="btn-secondary inline-flex justify-center">Upload Struk</a>
-                                        <div class="rounded-[20px] border border-slate-100 bg-slate-50/80 p-4 text-xs leading-6 text-slate-500">
-                                            Pembayaran langsung akan diperbarui oleh admin dari dashboard kasir.
-                                        </div>
                                     @elseif ($status === 'menunggu_konfirmasi')
                                         <a href="{{ route('transaksi.cetak', $transaksi->id) }}"
-                                            class="btn-secondary inline-flex justify-center">Nota Sementara</a>
-                                        @if ($transaksi->bukti_struk)
-                                            <a href="{{ route('transaksi.struk', $transaksi->id) }}"
-                                                target="_blank" class="btn-accent inline-flex justify-center">Lihat Struk</a>
-                                        @endif
+                                            class="btn-primary inline-flex justify-center">Lihat Nota</a>
                                     @elseif ($status === 'lunas')
                                         <a href="{{ route('transaksi.cetak', $transaksi->id) }}"
                                             class="btn-primary inline-flex justify-center">Lihat Nota</a>

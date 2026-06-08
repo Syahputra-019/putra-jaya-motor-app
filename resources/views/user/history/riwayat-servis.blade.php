@@ -110,6 +110,10 @@
                         </div>
                     </div>
                 @endforeach
+
+                <div class="mt-6">
+                    {{ $transaksis->links() }}
+                </div>
             </div>
         @endif
     </div>

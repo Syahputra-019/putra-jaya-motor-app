@@ -1,8 +1,4 @@
-@if (auth()->user()->role === 'pelanggan')
-    @extends('components.app')
-@endif
-
-@section('content')
+@php ob_start(); @endphp
     <div class="container mx-auto max-w-4xl px-4 py-8">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold text-slate-800">Riwayat Notifikasi</h1>
@@ -55,10 +51,16 @@
             {{ $notifications->links() }}
         </div>
     </div>
-@endsection
+@php $mainContent = ob_get_clean(); @endphp
 
 @if (auth()->user()->role !== 'pelanggan')
     <x-layout>
-        @yield('content')
+        {!! $mainContent !!}
     </x-layout>
+    <?php return; ?>
 @endif
+
+@extends('components.app')
+@section('content')
+    {!! $mainContent !!}
+@endsection

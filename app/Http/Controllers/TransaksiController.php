@@ -707,7 +707,8 @@ class TransaksiController extends Controller
 
         $transaksis = $this->customerTransactionsQuery($user, $pelanggan)
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('user.history.riwayat-servis', compact('transaksis'));
     }

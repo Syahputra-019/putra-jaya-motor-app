@@ -31,7 +31,7 @@
 @section('content')
     <section class="pb-16 pt-10">
         <div class="container mx-auto max-w-6xl px-4">
-            <div class="page-header">
+            <div class="page-header mb-6">
                 <div class="page-header-split">
                     <p class="page-kicker">Payment Center</p>
                     <h1 class="page-title">Pilih metode pembayaran</h1>
@@ -41,7 +41,7 @@
                 </div>
             </div>
 
-            <div class="surface-card">
+            <div class="surface-card mb-6">
                 <div class="grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-4">
                     <div>
                         <div class="page-kicker">Total Tagihan</div>

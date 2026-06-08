@@ -5,8 +5,7 @@
                 <p class="page-kicker">Workshop Overview</p>
                 <h1 class="page-title">Dashboard operasional</h1>
                 <p class="page-description">
-                    Ringkasan performa bengkel untuk periode <span class="font-bold text-[color:var(--brand-navy-800)]">{{ $judulFilter }}</span>,
-                    dengan visual yang lebih konsisten dan fokus pada angka penting.
+                    Ringkasan performa bengkel untuk periode Hari Ini, menampilkan metrik utama transaksi dan operasional secara terpusat.
                 </p>
             </div>
 
@@ -64,7 +63,9 @@
                 <div class="flex items-center justify-between gap-4">
                     <div>
                         <h2 class="section-title">Grafik pendapatan</h2>
-                        <p class="section-subtitle">Performa 6 bulan terakhir dengan palet warna biru tua dan kuning.</p>
+                        <p class="section-subtitle">
+                            Visualisasi tren pendapatan kotor bengkel selama 6 bulan terakhir untuk kebutuhan evaluasi bisnis.
+                        </p>
                     </div>
                 </div>
                 <div class="mt-6 h-[320px] w-full">
