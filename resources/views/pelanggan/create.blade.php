@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Customer Data</p>
                 <h1 class="page-title">Tambah pelanggan</h1>
-                <p class="page-description">Masukkan data pelanggan baru dengan pola form yang sama seperti seluruh modul lain.</p>
+                <p class="page-description">
+                    Isi data lengkap pelanggan bengkel, termasuk informasi kontak dan profil umum untuk mempermudah pencatatan riwayat transaksi.
+                </p>
             </div>
         </div>
 

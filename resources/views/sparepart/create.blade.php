@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Inventori</p>
                 <h1 class="page-title">Tambah sparepart</h1>
-                <p class="page-description">Masukkan detail sparepart baru ke sistem dengan tampilan form yang lebih rapi dan konsisten.</p>
+                <p class="page-description">
+                    Masukkan data lengkap suku cadang baru mulai dari nama barang, kode/kategori, harga satuan, hingga jumlah stok fisik yang tersedia.
+                </p>
             </div>
         </div>
 

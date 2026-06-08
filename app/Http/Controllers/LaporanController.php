@@ -21,7 +21,8 @@ class LaporanController extends Controller
                         ->where('status_pembayaran', 'lunas')
                         ->whereBetween('tanggal', [$startDate, $endDate])
                         ->orderBy('tanggal', 'desc')
-                        ->get();
+                        ->latest()
+                        ->paginate(10);
 
         // Menghitung total pendapatan dan jumlah transaksi
         $totalPendapatan = $transaksis->sum('total_biaya');

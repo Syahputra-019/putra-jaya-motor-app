@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Workshop Team</p>
                 <h1 class="page-title">Edit mekanik</h1>
-                <p class="page-description">Perbarui profil mekanik dengan form yang tetap seragam dan mudah dipindai.</p>
+                <p class="page-description">
+                    Perbarui informasi profil, kontak WhatsApp, serta spesialisasi keahlian mekanik untuk memastikan akurasi data operasional bengkel.
+                </p>
             </div>
         </div>
 

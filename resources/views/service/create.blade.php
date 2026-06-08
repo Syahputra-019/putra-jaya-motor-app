@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Layanan</p>
                 <h1 class="page-title">Tambah jasa servis</h1>
-                <p class="page-description">Tambahkan layanan baru dengan struktur form yang seragam dan mudah dibaca.</p>
+                <p class="page-description">
+                    Masukkan data lengkap layanan servis yang tersedia di bengkel, termasuk nama jasa dan harga untuk memudahkan proses transaksi dan pencatatan biaya.
+                </p>
             </div>
         </div>
 

@@ -3,8 +3,9 @@
         <div class="page-header">
             <div class="page-header-split">
                 <h1 class="page-title">Antrean booking</h1>
-                <p class="page-description">Pantau semua antrean servis dengan tampilan status yang lebih jelas dan
-                    tombol aksi yang konsisten.</p>
+                <p class="page-description">
+                    Pantau jadwal booking, penugasan mekanik, dan status servis kendaraan pelanggan secara real-time.
+                </p>
             </div>
 
             <div class="page-actions">
@@ -73,7 +74,7 @@
                                             class="btn-warning !px-4 !py-2">Edit</a>
                                         @if ($b->status === 'selesai')
                                             <a href="{{ route('transaksi.create', ['booking_id' => $b->id]) }}"
-                                                class="btn-accent !px-4 !py-2">Ke Kasir</a>
+                                                class="btn-accent !px-4 !py-2">Proses Bayar</a>
                                         @endif
                                         <form action="{{ route('booking.destroy', $b->id) }}" method="POST"
                                             onsubmit="return confirm('Yakin ingin menghapus antrean ini?');">

@@ -4,8 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Inventori</p>
                 <h1 class="page-title">Data sparepart</h1>
-                <p class="page-description">Kelola stok dan harga suku cadang dengan tampilan tabel yang lebih rapi dan
-                    konsisten.</p>
+                <p class="page-description">
+                    Kelola informasi ketersediaan stok, harga jual, dan kategori suku cadang secara berkala untuk memastikan kelancaran operasional bengkel.
+                </p>
             </div>
 
             <div class="page-actions">

@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Customer Data</p>
                 <h1 class="page-title">Edit pelanggan</h1>
-                <p class="page-description">Perbarui informasi pelanggan tanpa mengubah ritme dan struktur tampilan form.</p>
+                <p class="page-description">
+                    Perbarui data pelanggan bengkel, termasuk informasi kontak dan profil umum untuk mempermudah pencatatan riwayat transaksi.
+                </p>
             </div>
         </div>
 

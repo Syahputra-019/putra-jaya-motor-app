@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Queue Management</p>
                 <h1 class="page-title">Tambah booking</h1>
-                <p class="page-description">Buat antrean booking baru dengan layout form yang konsisten untuk admin maupun pelanggan.</p>
+                <p class="page-description">
+                    Daftarkan jadwal reservasi servis baru untuk mengatur antrean kendaraan dan alokasi mekanik secara terstruktur.
+                </p>
             </div>
         </div>
 

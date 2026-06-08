@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Workshop Team</p>
                 <h1 class="page-title">Data mekanik</h1>
-                <p class="page-description">Daftar mekanik kini tampil lebih bersih dengan ritme visual yang sama seperti modul pelanggan, sparepart, dan servis.</p>
+                <p class="page-description">
+                    Kelola daftar teknisi bengkel, termasuk informasi kontak dan spesialisasi keahlian untuk memudahkan alokasi tugas servis.
+                </p>
             </div>
 
             <div class="page-actions">

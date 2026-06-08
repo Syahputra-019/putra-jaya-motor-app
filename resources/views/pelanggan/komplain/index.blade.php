@@ -1,12 +1,12 @@
 <x-layout>
-    <div class="mb-6 flex items-center justify-between">
-        <div>
+    <div class="page-header mb-6">
+        <div class="page-header-split">
             <h2 class="text-2xl font-bold text-slate-800">Data Komplain Pelanggan</h2>
             <p class="text-sm text-slate-500">Daftar keluhan pasca servis dari pelanggan.</p>
         </div>
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto p-4">
             <table class="w-full text-left text-sm text-slate-600">
                 <thead class="border-b border-slate-200 bg-slate-50 text-slate-700">

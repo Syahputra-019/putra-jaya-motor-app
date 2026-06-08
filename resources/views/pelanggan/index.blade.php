@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Customer Data</p>
                 <h1 class="page-title">Data pelanggan</h1>
-                <p class="page-description">Semua data pelanggan kini tampil dalam pola tabel yang sama dengan modul lain agar lebih nyaman dikelola.</p>
+                <p class="page-description">
+                    Kelola data pelanggan bengkel, termasuk informasi kontak dan profil umum untuk mempermudah pencatatan riwayat transaksi.
+                </p>
             </div>
 
             <div class="page-actions">

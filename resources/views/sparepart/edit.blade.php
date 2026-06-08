@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Inventori</p>
                 <h1 class="page-title">Edit sparepart</h1>
-                <p class="page-description">Perbarui harga dan stok sparepart dengan struktur form yang sama seperti modul lain.</p>
+                <p class="page-description">
+                    Perbarui informasi detail suku cadang, harga jual, dan jumlah ketersediaan stok untuk menjaga keakuratan data inventori bengkel.
+                </p>
             </div>
         </div>
 

@@ -1,7 +1,7 @@
 <x-layout>
-    <div class="px-4 py-8 lg:px-8">
-        <div class="mb-8 flex items-center justify-between">
-            <div>
+    <div>
+        <div class="page-header mb-6">
+            <div class="page-header-split">
                 <h1 class="text-2xl font-bold text-slate-900">Manajemen Testimonial</h1>
                 <p class="mt-1 text-sm text-slate-500">Kelola ulasan dari pelanggan.</p>
             </div>
@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+        <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">

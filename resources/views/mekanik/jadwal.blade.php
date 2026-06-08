@@ -4,8 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Mechanic Queue</p>
                 <h1 class="page-title">Jadwal servis</h1>
-                <p class="page-description">Antrean kerja mekanik kini tampil dalam kartu-kartu rapi dengan aksi yang
-                    lebih fokus dan mudah dijalankan.</p>
+                <p class="page-description">
+                    Pantau alokasi tugas dan jadwal servis kendaraan yang sedang atau akan dikerjakan oleh masing-masing mekanik secara real-time.
+                </p>
             </div>
         </div>
 

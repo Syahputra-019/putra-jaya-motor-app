@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Queue Management</p>
                 <h1 class="page-title">Edit booking</h1>
-                <p class="page-description">Perbarui antrean booking dengan pola form yang tetap seragam dan nyaman digunakan.</p>
+                <p class="page-description">
+                    Sesuaikan kembali jadwal reservasi, data kendaraan, atau alokasi mekanik untuk memastikan keakuratan antrean servis.
+                </p>
             </div>
         </div>
 

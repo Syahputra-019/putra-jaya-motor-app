@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Cashier Desk</p>
                 <h1 class="page-title">Kasir dan transaksi</h1>
-                <p class="page-description">Kelola transaksi servis, cek status pembayaran, dan cetak nota dari tampilan yang lebih modern dan konsisten.</p>
+                <p class="page-description">
+                    Kelola transaksi servis kendaraan dengan mudah, mulai dari pencatatan layanan, perhitungan biaya, hingga proses pembayaran yang terintegrasi.
+                </p>
             </div>
 
             <div class="page-actions">

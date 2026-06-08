@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Layanan</p>
                 <h1 class="page-title">Edit jasa servis</h1>
-                <p class="page-description">Perbarui nama layanan dan biaya agar data transaksi tetap konsisten.</p>
+                <p class="page-description">
+                    Perbarui informasi detail layanan servis, termasuk nama jasa dan harga untuk memudahkan proses transaksi dan pencatatan biaya.
+                </p>
             </div>
         </div>
 

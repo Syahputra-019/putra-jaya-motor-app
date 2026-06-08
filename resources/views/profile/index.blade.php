@@ -16,8 +16,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Account Settings</p>
                 <h1 class="page-title">Profil akun</h1>
-                <p class="page-description">Kelola identitas akun, foto profil, nomor telepon, dan keamanan login dari
-                    satu halaman yang konsisten untuk semua role.</p>
+                <p class="page-description">
+                    Kelola informasi pribadi, foto profil, dan pengaturan keamanan untuk melindungi akun Anda.
+                </p>
             </div>
 
             <div class="page-actions">
@@ -49,8 +50,9 @@
                     <div class="border-b border-slate-100 pb-5">
                         <p class="page-kicker">Informasi Utama</p>
                         <h2 class="mt-2 text-2xl font-bold text-slate-950">Data profil</h2>
-                        <p class="mt-2 text-sm leading-6 text-slate-500">Perbarui nama, nomor telepon, dan foto profil
-                            agar data akun tetap akurat di seluruh sistem.</p>
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Pastikan informasi dasar seperti nama, nomor telepon, dan foto profil Anda selalu yang terbaru.
+                        </p>
                     </div>
 
                     <form action="{{ route('profile.updateInfo') }}" method="POST" enctype="multipart/form-data"
@@ -196,21 +198,6 @@
                     </div>
                 </section>
 
-                <section class="surface-card">
-                    <p class="page-kicker">Tips</p>
-                    <h3 class="mt-2 text-lg font-bold text-slate-950">Biar tampilan profil rapi</h3>
-                    <div class="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                        <div class="rounded-2xl border border-slate-100 bg-white p-4">
-                            Gunakan foto profil persegi agar hasil crop bulat tetap proporsional di topbar.
-                        </div>
-                        <div class="rounded-2xl border border-slate-100 bg-white p-4">
-                            Simpan nomor telepon aktif supaya admin, mekanik, dan pelanggan mudah saling terhubung.
-                        </div>
-                        <div class="rounded-2xl border border-slate-100 bg-white p-4">
-                            Setelah mengganti password, gunakan kombinasi huruf besar, kecil, angka, dan simbol.
-                        </div>
-                    </div>
-                </section>
             </aside>
         </div>
     </div>

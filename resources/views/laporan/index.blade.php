@@ -4,8 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Revenue Report</p>
                 <h1 class="page-title">Laporan pendapatan</h1>
-                <p class="page-description">Filter performa transaksi berdasarkan rentang tanggal dengan kartu ringkasan
-                    dan tabel yang seragam.</p>
+                <p class="page-description">
+                    Lihat ringkasan pendapatan bengkel berdasarkan rentang tanggal yang dipilih, termasuk total pendapatan, jumlah transaksi, dan daftar transaksi lengkap untuk analisis lebih mendalam.
+                </p>
             </div>
         </div>
 
@@ -88,6 +89,10 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="surface-card-tight">
+            {{ $transaksis->links() }}
         </div>
     </div>
 </x-layout>

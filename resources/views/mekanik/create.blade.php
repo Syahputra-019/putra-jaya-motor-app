@@ -4,7 +4,9 @@
             <div class="page-header-split">
                 <p class="page-kicker">Workshop Team</p>
                 <h1 class="page-title">Tambah mekanik</h1>
-                <p class="page-description">Masukkan profil mekanik baru dengan tampilan form yang konsisten di seluruh sistem.</p>
+                <p class="page-description">
+                    Isi data lengkap mekanik baru untuk mendaftarkannya ke dalam sistem manajemen operasional bengkel.
+                </p>
             </div>
         </div>
 
