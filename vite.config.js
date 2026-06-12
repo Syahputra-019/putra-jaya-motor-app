@@ -3,7 +3,7 @@ import laravel from 'laravel-vite-plugin';
 
 export default defineConfig({
     server: {
-        host: 'localhost',  // ← Paksa pakai localhost bukan [::1]
+        host: 'localhost',
         port: 5173,
         hmr: {
             host: 'localhost',
