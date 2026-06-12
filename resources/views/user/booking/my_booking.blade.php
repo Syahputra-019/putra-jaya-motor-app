@@ -413,12 +413,11 @@
                                                     class="btn-primary">Lihat Nota</a>
                                             @else
                                                 <a href="{{ route('transaksi.bayar', $booking->transaksi->id) }}"
-                                                    class="btn-primary">Lanjutkan Pembayaran</a>
+                                                    class="btn-primary">Lanjut Pembayaran</a>
                                             @endif
                                         @endif
                                         <a href="{{ route('booking.show', $booking->id) }}" class="btn-accent">Lihat
                                             Detail Lengkap</a>
-                                        <a href="{{ route('landing') }}#booking" class="btn-primary">Booking Lagi</a>
                                     </div>
                                 </div>
                             </div>

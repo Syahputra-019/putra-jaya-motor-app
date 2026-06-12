@@ -42,6 +42,10 @@
                             class="font-bold text-[color:var(--brand-navy-800)]">{{ $transaksi->kode_transaksi }}</span>.
                     </p>
                 </div>
+
+                <div class="page-actions mt-4 lg:mt-0">
+                    <a href="{{ route('pelanggan.pembayaran') }}" class="btn-secondary">Kembali</a>
+                </div>
             </div>
 
             <div class="surface-card mb-6">
@@ -204,6 +208,7 @@
                 const btnBayar = document.getElementById('btn-bayar-midtrans');
                 let snapToken = null;
                 let isPreparing = true;
+                let isSnapActive = false;
 
                 // 2. Pre-fetch Snap Token di latar belakang secara asinkron (Warmup)
                 const tokenPromise = fetch("{{ route('transaksi.midtransToken', $transaksi->id) }}", {
@@ -230,7 +235,16 @@
 
                 if (btnBayar) {
                     btnBayar.addEventListener('click', async function() {
+                        if (isSnapActive) return;
+                        isSnapActive = true;
+
                         const originalText = btnBayar.innerHTML;
+                        const resetState = () => {
+                            btnBayar.innerHTML = originalText;
+                            btnBayar.disabled = false;
+                            isSnapActive = false;
+                        };
+
                         btnBayar.innerHTML = 'Menyiapkan Pembayaran...';
                         btnBayar.disabled = true;
 
@@ -238,7 +252,7 @@
                             if (typeof Swal === 'undefined') {
                                 throw new Error(
                                     'Library visual (SweetAlert2) gagal dimuat. Coba muat ulang halaman.'
-                                    );
+                                );
                             }
                             if (!window.snap || !window.snap.pay) {
                                 throw new Error(
@@ -270,9 +284,6 @@
                                 }
                             }
 
-                            btnBayar.innerHTML = originalText;
-                            btnBayar.disabled = false;
-
                             window.snap.pay(snapToken, {
                                 onSuccess: function(result) {
                                     Swal.fire('Berhasil!', 'Pembayaran berhasil.', 'success')
@@ -285,9 +296,11 @@
                                 },
                                 onError: function(result) {
                                     Swal.fire('Gagal', 'Pembayaran gagal!', 'error');
+                                    resetState();
                                 },
                                 onClose: function() {
                                     console.log("Popup ditutup");
+                                    resetState();
                                 }
                             });
                         } catch (error) {
@@ -298,9 +311,7 @@
                                 alert(error.message ||
                                     'Terjadi kesalahan koneksi ke server. Silakan coba lagi.');
                             }
-                        } finally {
-                            btnBayar.innerHTML = originalText;
-                            btnBayar.disabled = false;
+                            resetState();
                         }
                     });
                 }

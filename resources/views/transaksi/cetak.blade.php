@@ -255,7 +255,7 @@
                 @if (auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('transaksi.index') }}">Kembali</a>
                 @elseif(auth()->check() && auth()->user()->role === 'pelanggan')
-                    <a href="{{ route('booking.mine') }}">Kembali</a>
+                    <a href="{{ route('pelanggan.pembayaran') }}">Kembali</a>
                 @else
                     <a href="{{ route('landing') }}">Kembali</a>
                 @endif
