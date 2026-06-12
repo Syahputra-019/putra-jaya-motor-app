@@ -17,6 +17,7 @@
         }
     </style>
     @yield('styles')
+    @stack('scripts')
 </head>
 
 @php

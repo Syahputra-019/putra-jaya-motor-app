@@ -25,6 +25,9 @@
     @if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar')
         <link rel="preconnect" href="{{ $midtransHost }}">
         <link rel="dns-prefetch" href="{{ $midtransHost }}">
+        <!-- Preload script agar diutamakan oleh browser -->
+        <link rel="preload" href="{{ $midtransConfig['snap_url'] }}" as="script">
+        <link rel="preload" href="https://cdn.jsdelivr.net/npm/sweetalert2@11" as="script">
     @endif
 @endsection
 
@@ -192,57 +195,38 @@
 
 @section('scripts')
     @if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar')
-        <script>
-            // Fungsi untuk memuat script eksternal
-            function loadExternalScript(url, clientKey = null) {
-                return new Promise((resolve, reject) => {
-                    if (document.querySelector(`script[src="${url}"]`)) {
-                        return resolve(); // Script sudah ada, langsung lanjut
-                    }
-                    const script = document.createElement('script');
-                    script.src = url;
-                    if (clientKey) script.setAttribute('data-client-key', clientKey);
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.body.appendChild(script);
-                });
-            }
+        <!-- Muat script secara native -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{ $midtransConfig['snap_url'] }}" data-client-key="{{ $midtransConfig['client_key'] }}"></script>
 
+        <script>
             document.addEventListener("DOMContentLoaded", function() {
                 const btnBayar = document.getElementById('btn-bayar-midtrans');
                 let snapToken = null;
                 let isPreparing = true;
 
-                // 1. Muat library SweetAlert dan Midtrans Snap secara paralel sesaat setelah DOM siap
-                const scriptsPromise = Promise.all([
-                    loadExternalScript("https://cdn.jsdelivr.net/npm/sweetalert2@11"),
-                    loadExternalScript("{{ $midtransConfig['snap_url'] }}", "{{ $midtransConfig['client_key'] }}")
-                ]).catch(err => {
-                    console.error("Gagal memuat library pembayaran:", err);
-                });
-
                 // 2. Pre-fetch Snap Token di latar belakang secara asinkron (Warmup)
                 const tokenPromise = fetch("{{ route('transaksi.midtransToken', $transaksi->id) }}", {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(async (response) => {
-                    const data = await response.json();
-                    if (response.ok && data.snap_token) {
-                        snapToken = data.snap_token;
-                    } else {
-                        console.warn("Gagal pre-fetch token:", data.message || "Unknown error");
-                    }
-                })
-                .catch(err => {
-                    console.error("Error pre-fetch token Midtrans:", err);
-                })
-                .finally(() => {
-                    isPreparing = false;
-                });
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (response.ok && data.snap_token) {
+                            snapToken = data.snap_token;
+                        } else {
+                            console.warn("Gagal pre-fetch token:", data.message || "Unknown error");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error pre-fetch token Midtrans:", err);
+                    })
+                    .finally(() => {
+                        isPreparing = false;
+                    });
 
                 if (btnBayar) {
                     btnBayar.addEventListener('click', async function() {
@@ -251,14 +235,14 @@
                         btnBayar.disabled = true;
 
                         try {
-                            // Tunggu script eksternal selesai dimuat (jika belum selesai)
-                            await scriptsPromise;
-
                             if (typeof Swal === 'undefined') {
-                                throw new Error('Library visual (SweetAlert2) gagal dimuat. Coba muat ulang halaman.');
+                                throw new Error(
+                                    'Library visual (SweetAlert2) gagal dimuat. Coba muat ulang halaman.'
+                                    );
                             }
                             if (!window.snap || !window.snap.pay) {
-                                throw new Error('Library Snap Midtrans gagal dimuat. Coba muat ulang halaman.');
+                                throw new Error(
+                                    'Library Snap Midtrans gagal dimuat. Coba muat ulang halaman.');
                             }
 
                             // Tunggu token selesai di-fetch (jika belum selesai)
@@ -270,13 +254,14 @@
                             // Jika token tidak berhasil di-fetch di latar belakang, coba fetch ulang sekali secara synchronous
                             if (!snapToken) {
                                 btnBayar.innerHTML = 'Memproses Token...';
-                                const response = await fetch("{{ route('transaksi.midtransToken', $transaksi->id) }}", {
-                                    method: 'GET',
-                                    headers: {
-                                        'Accept': 'application/json',
-                                        'X-Requested-With': 'XMLHttpRequest'
-                                    }
-                                });
+                                const response = await fetch(
+                                    "{{ route('transaksi.midtransToken', $transaksi->id) }}", {
+                                        method: 'GET',
+                                        headers: {
+                                            'Accept': 'application/json',
+                                            'X-Requested-With': 'XMLHttpRequest'
+                                        }
+                                    });
                                 const data = await response.json();
                                 if (response.ok && data.snap_token) {
                                     snapToken = data.snap_token;
@@ -294,7 +279,8 @@
                                         .then(() => window.location.reload());
                                 },
                                 onPending: function(result) {
-                                    Swal.fire('Menunggu', 'Menunggu konfirmasi pembayaran Anda.', 'info')
+                                    Swal.fire('Menunggu',
+                                            'Menunggu konfirmasi pembayaran Anda.', 'info')
                                         .then(() => window.location.reload());
                                 },
                                 onError: function(result) {
@@ -306,9 +292,11 @@
                             });
                         } catch (error) {
                             if (typeof Swal !== 'undefined') {
-                                Swal.fire('Error', error.message || 'Terjadi kesalahan koneksi ke server. Silakan coba lagi.', 'error');
+                                Swal.fire('Error', error.message ||
+                                    'Terjadi kesalahan koneksi ke server. Silakan coba lagi.', 'error');
                             } else {
-                                alert(error.message || 'Terjadi kesalahan koneksi ke server. Silakan coba lagi.');
+                                alert(error.message ||
+                                    'Terjadi kesalahan koneksi ke server. Silakan coba lagi.');
                             }
                         } finally {
                             btnBayar.innerHTML = originalText;

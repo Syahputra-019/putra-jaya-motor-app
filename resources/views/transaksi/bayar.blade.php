@@ -14,9 +14,23 @@
         }
     @endphp
 
-    @php
-        $initialCheckout = null;
-    @endphp
+    {{-- =====================================================================
+         FIX #1: Load SweetAlert2 + Snap.js di <head> via @push('scripts')
+         agar browser mulai download script SEBELUM konten halaman dirender.
+         Pastikan x-layout kamu punya @stack('scripts') di dalam <head>.
+    ====================================================================== --}}
+    @if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar')
+        @push('scripts')
+            {{-- SweetAlert2 --}}
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+            {{-- FIX #2: Snap.js dimuat lebih awal dengan data-client-key yang benar --}}
+            <script
+                src="{{ $midtransConfig['snap_url'] }}"
+                data-client-key="{{ $midtransConfig['client_key'] }}">
+            </script>
+        @endpush
+    @endif
 
     <div class="page-shell-md">
         <div class="page-header">
@@ -117,10 +131,16 @@
                             <div class="feature-icon">M</div>
                             <h2 class="mt-5 text-2xl font-bold text-slate-950">Bayar otomatis</h2>
                             <p class="mt-3 text-sm leading-7 text-slate-500">Gunakan Midtrans untuk pembayaran instan
-                                lewat
-                                QRIS, virtual account, e-wallet, dan metode digital lain.</p>
-                            <button id="btn-bayar-midtrans" type="button" class="btn-primary mt-8 w-full">Bayar
-                                Sekarang via Midtrans</button>
+                                lewat QRIS, virtual account, e-wallet, dan metode digital lain.</p>
+
+                            {{-- FIX #3: Tombol disable dulu, enable setelah snap.js siap --}}
+                            <button
+                                id="btn-bayar-midtrans"
+                                type="button"
+                                class="btn-primary mt-8 w-full"
+                                disabled>
+                                Memuat sistem pembayaran...
+                            </button>
                         </div>
                     @else
                         <div class="surface-card">
@@ -153,6 +173,7 @@
                             <button type="submit" class="btn-accent w-full">Kirim Bukti Transfer</button>
                         </form>
                     </div>
+
                 @elseif ($transaksi->status_pembayaran === 'menunggu_konfirmasi')
                     <div class="surface-card">
                         <div class="feature-icon">T</div>
@@ -178,130 +199,149 @@
 
     @if ($midtransEnabled && $transaksi->status_pembayaran === 'belum_bayar')
         <script>
-            // Fungsi untuk memuat script eksternal
-            function loadExternalScript(url, clientKey = null) {
-                return new Promise((resolve, reject) => {
-                    if (document.querySelector(`script[src="${url}"]`)) {
-                        return resolve(); // Script sudah ada, langsung lanjut
+            (function () {
+                const btnBayar    = document.getElementById('btn-bayar-midtrans');
+                const LABEL_READY = 'Bayar Sekarang via Midtrans';
+                const TOKEN_URL   = "{{ route('transaksi.midtransToken', $transaksi->id) }}";
+
+                let snapToken       = null;
+                let isPreparing     = true;
+                let isSnapPopupOpen = false;
+
+                // ─────────────────────────────────────────────────────────────
+                // FIX #3: Aktifkan tombol hanya setelah window.snap siap
+                // ─────────────────────────────────────────────────────────────
+                function tryEnableButton() {
+                    if (window.snap && window.snap.pay) {
+                        btnBayar.disabled    = false;
+                        btnBayar.textContent = LABEL_READY;
+                    } else {
+                        // Coba lagi tiap 200ms sampai snap.js selesai dimuat
+                        setTimeout(tryEnableButton, 200);
                     }
-                    const script = document.createElement('script');
-                    script.src = url;
-                    if (clientKey) script.setAttribute('data-client-key', clientKey);
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.body.appendChild(script);
-                });
-            }
+                }
+                tryEnableButton();
 
-            document.addEventListener("DOMContentLoaded", function() {
-                const btnBayar = document.getElementById('btn-bayar-midtrans');
-                let snapToken = null;
-                let isPreparing = true;
-
-                // 1. Muat library SweetAlert dan Midtrans Snap secara paralel sesaat setelah DOM siap
-                const scriptsPromise = Promise.all([
-                    loadExternalScript("https://cdn.jsdelivr.net/npm/sweetalert2@11"),
-                    loadExternalScript("{{ $midtransConfig['snap_url'] }}", "{{ $midtransConfig['client_key'] }}")
-                ]).catch(err => {
-                    console.error("Gagal memuat library pembayaran:", err);
-                });
-
-                // 2. Pre-fetch Snap Token di latar belakang secara asinkron (Warmup)
-                const tokenPromise = fetch("{{ route('transaksi.midtransToken', $transaksi->id) }}", {
+                // ─────────────────────────────────────────────────────────────
+                // Pre-fetch snap token di background saat halaman baru dibuka
+                // ─────────────────────────────────────────────────────────────
+                const tokenPromise = fetch(TOKEN_URL, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(async (response) => {
-                    const data = await response.json();
-                    if (response.ok && data.snap_token) {
+                .then(async (res) => {
+                    const data = await res.json();
+                    if (res.ok && data.snap_token) {
                         snapToken = data.snap_token;
                     } else {
-                        console.warn("Gagal pre-fetch token:", data.message || "Unknown error");
+                        console.warn('Pre-fetch token gagal:', data.message ?? 'Unknown');
                     }
                 })
-                .catch(err => {
-                    console.error("Error pre-fetch token Midtrans:", err);
-                })
-                .finally(() => {
-                    isPreparing = false;
-                });
+                .catch(err => console.error('Error pre-fetch token:', err))
+                .finally(() => { isPreparing = false; });
 
+                // ─────────────────────────────────────────────────────────────
+                // Handler klik tombol bayar
+                // ─────────────────────────────────────────────────────────────
                 if (btnBayar) {
-                    btnBayar.addEventListener('click', async function() {
-                        const originalText = btnBayar.innerHTML;
+                    btnBayar.addEventListener('click', async function () {
+                        // Cegah double-click / klik ganda
+                        if (isSnapPopupOpen) return;
+                        isSnapPopupOpen = true;
+
+                        const originalHTML = btnBayar.innerHTML;
+                        const resetState   = () => {
+                            btnBayar.innerHTML = originalHTML;
+                            btnBayar.disabled  = false;
+                            isSnapPopupOpen    = false;
+                        };
+
                         btnBayar.innerHTML = 'Menyiapkan Pembayaran...';
-                        btnBayar.disabled = true;
+                        btnBayar.disabled  = true;
 
                         try {
-                            // Tunggu script eksternal selesai dimuat (jika belum selesai)
-                            await scriptsPromise;
-
+                            // Guard: pastikan SweetAlert2 sudah ada
                             if (typeof Swal === 'undefined') {
-                                throw new Error('Library visual (SweetAlert2) gagal dimuat. Coba muat ulang halaman.');
+                                throw new Error('Library SweetAlert2 gagal dimuat. Coba muat ulang halaman.');
                             }
+
+                            // Guard: pastikan snap.js sudah ada
                             if (!window.snap || !window.snap.pay) {
                                 throw new Error('Library Snap Midtrans gagal dimuat. Coba muat ulang halaman.');
                             }
 
-                            // Tunggu token selesai di-fetch (jika belum selesai)
+                            // Tunggu pre-fetch token selesai jika masih berjalan
                             if (isPreparing) {
                                 btnBayar.innerHTML = 'Memproses Token...';
                                 await tokenPromise;
                             }
 
-                            // Jika token tidak berhasil di-fetch di latar belakang, coba fetch ulang sekali secara synchronous
+                            // Jika pre-fetch gagal, coba fetch ulang sekali lagi
                             if (!snapToken) {
                                 btnBayar.innerHTML = 'Memproses Token...';
-                                const response = await fetch("{{ route('transaksi.midtransToken', $transaksi->id) }}", {
+                                const res  = await fetch(TOKEN_URL, {
                                     method: 'GET',
                                     headers: {
                                         'Accept': 'application/json',
                                         'X-Requested-With': 'XMLHttpRequest'
                                     }
                                 });
-                                const data = await response.json();
-                                if (response.ok && data.snap_token) {
+                                const data = await res.json();
+                                if (res.ok && data.snap_token) {
                                     snapToken = data.snap_token;
                                 } else {
-                                    throw new Error(data.message || 'Gagal mendapatkan token transaksi.');
+                                    throw new Error(data.message ?? 'Gagal mendapatkan token transaksi.');
                                 }
                             }
 
-                            btnBayar.innerHTML = originalText;
-                            btnBayar.disabled = false;
-
-                            window.snap.pay(snapToken, {
-                                onSuccess: function(result) {
-                                    Swal.fire('Berhasil!', 'Pembayaran berhasil.', 'success')
-                                        .then(() => window.location.reload());
-                                },
-                                onPending: function(result) {
-                                    Swal.fire('Menunggu', 'Menunggu konfirmasi pembayaran Anda.', 'info')
-                                        .then(() => window.location.reload());
-                                },
-                                onError: function(result) {
-                                    Swal.fire('Gagal', 'Pembayaran gagal!', 'error');
-                                },
-                                onClose: function() {
-                                    console.log("Popup ditutup");
-                                }
+                            // FIX #4: Double rAF + setTimeout agar browser flush paint
+                            // sebelum Snap.js menjalankan eval() internalnya.
+                            // Ini yang bikin popup tidak lambat / blocked.
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    setTimeout(() => {
+                                        try {
+                                            window.snap.pay(snapToken, {
+                                                onSuccess: function (result) {
+                                                    Swal.fire('Berhasil!', 'Pembayaran berhasil.', 'success')
+                                                        .then(() => window.location.reload());
+                                                },
+                                                onPending: function (result) {
+                                                    Swal.fire('Menunggu', 'Menunggu konfirmasi pembayaran Anda.', 'info')
+                                                        .then(() => window.location.reload());
+                                                },
+                                                onError: function (result) {
+                                                    Swal.fire('Gagal', 'Pembayaran gagal!', 'error');
+                                                    resetState();
+                                                },
+                                                onClose: function () {
+                                                    console.log('Popup Midtrans ditutup.');
+                                                    resetState();
+                                                }
+                                            });
+                                        } catch (snapError) {
+                                            console.error('Midtrans Snap error:', snapError);
+                                            Swal.fire('Error', 'Sistem pembayaran gagal dimuat.', 'error');
+                                            resetState();
+                                        }
+                                    }, 100);
+                                });
                             });
+
                         } catch (error) {
                             if (typeof Swal !== 'undefined') {
-                                Swal.fire('Error', error.message || 'Terjadi kesalahan koneksi ke server. Silakan coba lagi.', 'error');
+                                Swal.fire('Error', error.message ?? 'Terjadi kesalahan. Silakan coba lagi.', 'error');
                             } else {
-                                alert(error.message || 'Terjadi kesalahan koneksi ke server. Silakan coba lagi.');
+                                alert(error.message ?? 'Terjadi kesalahan. Silakan coba lagi.');
                             }
-                        } finally {
-                            btnBayar.innerHTML = originalText;
-                            btnBayar.disabled = false;
+                            resetState();
                         }
                     });
                 }
-            });
+            })();
         </script>
     @endif
 </x-layout>
