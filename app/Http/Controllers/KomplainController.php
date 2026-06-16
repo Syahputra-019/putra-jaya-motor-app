@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Komplain;
-use App\Models\Transaksi;
+use App\Models\User;
+use App\Notifications\PelangganNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,13 +43,20 @@ public function create()
             $request->foto_bukti->move(public_path('uploads/komplain'), $namaFoto);
         }
 
-        Komplain::create([
+        $komplain = Komplain::create([
             'user_id' => Auth::id(),
             'booking_id' => $request->booking_id,
             'deskripsi_komplain' => $request->deskripsi_komplain,
             'foto_bukti' => $namaFoto,
             'status' => 'menunggu'
         ]);
+
+        // Kirim notifikasi ke Admin
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            // Menggunakan PelangganNotification sebagai placeholder jika belum buat class khusus
+            $admin->notify(new PelangganNotification('Komplain Baru!', 'Ada komplain baru dari pelanggan.', route('admin.komplain.index')));
+        }
 
         return redirect()->route('komplain.index')->with('success', 'Komplain berhasil dikirim, tunggu tanggapan admin ya!');
     }
