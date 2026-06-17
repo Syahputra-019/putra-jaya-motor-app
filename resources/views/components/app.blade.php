@@ -286,8 +286,8 @@
                 <div>
                     <h4 class="mb-4 text-sm font-bold text-slate-900">Kontak Kami</h4>
                     <ul class="space-y-2 text-sm text-slate-500">
-                        <li>WA: 0812-3456-7890</li>
-                        <li>Jl. Raya Bogor No. 123</li>
+                        <li>WA: 895403829601</li>
+                        <li>Jl. Ikan Gurami No.14</li>
                         <li>Buka: Setiap Hari (08:00 - 17:00)</li>
                     </ul>
                 </div>
