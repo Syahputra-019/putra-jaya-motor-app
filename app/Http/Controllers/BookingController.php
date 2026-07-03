@@ -12,6 +12,8 @@ use App\Notifications\NewBookingNotification;
 use App\Notifications\NewJobAssignedNotification;
 use App\Notifications\PelangganNotification;
 use App\Notifications\RekomendasiDijawabNotification;
+use App\Support\BookingQueueService;
+use App\Support\DailyBookingQuotaExceededException;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +39,10 @@ class BookingController extends Controller
             });
         }
 
+        if ($request->has('tanggal') && $request->tanggal != '') {
+            $query->whereDate('jadwal_booking', $request->tanggal);
+        }
+
         if (auth()->user()->role === 'pelanggan') {
             $query->where('user_id', auth()->id());
         }
@@ -59,7 +65,7 @@ class BookingController extends Controller
         return view('booking.create', compact('pelanggans', 'mekaniks', 'spareparts', 'services'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, BookingQueueService $queueService)
     {
         $isPelanggan = auth()->user()->role === 'pelanggan';
 
@@ -80,16 +86,7 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
-            // Cek Kuota Booking (Maksimal 5 motor per hari) dengan penguncian (Lock For Update)
-            $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
-            $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)
-                ->lockForUpdate()
-                ->count();
-
-            if ($jumlahBookingHariIni >= 5) {
-                DB::rollBack();
-                return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
-            }
+            $data = array_merge($data, $queueService->makeQueueData($request->jadwal_booking));
 
             // START: Logic for automatic mechanic assignment (Round Robin)
             $mekanikIdToAssign = null;
@@ -143,6 +140,9 @@ class BookingController extends Controller
             $booking = Booking::create($data);
 
             DB::commit();
+        } catch (DailyBookingQuotaExceededException $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
@@ -165,11 +165,12 @@ class BookingController extends Controller
             $user = User::find($booking->user_id);
             if ($user) {
                 $waktu = Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i');
-                $user->notify(new PelangganNotification('Booking Berhasil Dibuat', "Booking servis kendaraan Anda ({$booking->plat_nomor}) pada {$waktu} telah terdaftar di sistem.", route('pelanggan.riwayat')));
+                $nomorAntrean = $booking->kode_antrean ?? ('#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT));
+                $user->notify(new PelangganNotification('Booking Berhasil Dibuat', "Booking servis kendaraan Anda ({$booking->plat_nomor}) pada {$waktu} telah terdaftar dengan nomor antrean {$nomorAntrean}.", route('booking.mine', ['id' => $booking->id])));
             }
         }
 
-        return redirect()->route('booking.index')->with('success', 'Booking berhasil dibuat!');
+        return redirect()->route('booking.index')->with('success', 'Booking berhasil dibuat! Nomor antrean: ' . ($booking->kode_antrean ?? '#'.str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT)));
     }
 
     public function show(Booking $booking)
@@ -202,7 +203,7 @@ class BookingController extends Controller
         return view('booking.edit', compact('booking', 'pelanggans', 'mekaniks'));
     }
 
-    public function update(Request $request, Booking $booking)
+    public function update(Request $request, Booking $booking, BookingQueueService $queueService)
     {
         if (auth()->user()->role === 'pelanggan' && $booking->user_id !== auth()->id()) {
             abort(403);
@@ -224,32 +225,38 @@ class BookingController extends Controller
 
         $data = $request->all();
 
-        // Cek Kuota Booking (Maksimal 5 motor per hari)
-        $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
-        $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)
-            ->where('id', '!=', $booking->id) // Jangan hitung booking yang sedang diedit
-            ->count();
-        if ($jumlahBookingHariIni >= 5) {
-            return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
-        }
+        try {
+            DB::beginTransaction();
 
-        if (auth()->user()->role === 'pelanggan') {
-            $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
-            if (!$pelanggan) {
-                return redirect()->back()->withInput()->with('error', 'Silakan lengkapi profil/nomor telepon Anda terlebih dahulu di menu Profile.');
+            $data = array_merge($data, $queueService->makeQueueData($request->jadwal_booking, $booking));
+
+            if (auth()->user()->role === 'pelanggan') {
+                $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
+                if (!$pelanggan) {
+                    DB::rollBack();
+                    return redirect()->back()->withInput()->with('error', 'Silakan lengkapi profil/nomor telepon Anda terlebih dahulu di menu Profile.');
+                }
+                $data['pelanggan_id'] = $pelanggan->id;
+                $data['user_id'] = auth()->id();
+            } else {
+                $pelanggan = Pelanggan::findOrFail($data['pelanggan_id']);
+                $data['user_id'] = $pelanggan->user_id;
             }
-            $data['pelanggan_id'] = $pelanggan->id;
-            $data['user_id'] = auth()->id();
-        } else {
-            $pelanggan = Pelanggan::findOrFail($data['pelanggan_id']);
-            $data['user_id'] = $pelanggan->user_id;
+
+            $data['status'] = $data['status'] ?? $booking->status;
+
+            $oldMekanikId = $booking->mekanik_id;
+
+            $booking->update($data);
+
+            DB::commit();
+        } catch (DailyBookingQuotaExceededException $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        $data['status'] = $data['status'] ?? $booking->status;
-
-        $oldMekanikId = $booking->mekanik_id;
-
-        $booking->update($data);
 
         // Jika admin nge-assign / mengubah mekanik baru untuk booking ini
         if ($booking->mekanik_id && $booking->mekanik_id != $oldMekanikId) { // Gunakan != agar string '1' dan integer 1 dianggap sama
@@ -275,12 +282,13 @@ class BookingController extends Controller
         return redirect()->route('booking.index')->with('success', 'Booking berhasil dihapus!');
     }
 
-    public function myBooking(Request $request)
+    public function myBooking(Request $request, BookingQueueService $queueService)
     {
         $pelanggan = Pelanggan::where('user_id', auth()->id())->first();
 
         $bookings = collect();
         $booking = null;
+        $activeBookingsAhead = 0;
 
         if ($pelanggan) {
             $bookings = Booking::with('transaksi')
@@ -296,9 +304,13 @@ class BookingController extends Controller
             if (!$booking) {
                 $booking = $bookings->first();
             }
+
+            if ($booking) {
+                $activeBookingsAhead = $queueService->activeBookingsAhead($booking);
+            }
         }
 
-        return view('user.booking.my_booking', compact('booking', 'bookings'));
+        return view('user.booking.my_booking', compact('booking', 'bookings', 'activeBookingsAhead'));
     }
 
     public function konfirmasiRekomendasi(Request $request, Booking $booking)
@@ -331,13 +343,13 @@ class BookingController extends Controller
         return redirect()->back()->with('success', $pesan);
     }
 
-    public function cekJadwal()
+    public function cekJadwal(BookingQueueService $queueService)
     {
         $jadwal = [];
         for ($i = 0; $i < 10; $i++) {
             $tanggal = Carbon::now()->addDays($i)->toDateString();
-            $jumlahBooking = Booking::whereDate('jadwal_booking', $tanggal)->count();
-            $sisaKuota = 5 - $jumlahBooking;
+            $sisaKuota = $queueService->remainingQuotaForDate($tanggal);
+            $jumlahBooking = BookingQueueService::MAX_DAILY_BOOKINGS - $sisaKuota;
             
             $jadwal[] = [
                 'tanggal' => $tanggal,

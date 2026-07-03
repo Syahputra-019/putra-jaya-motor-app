@@ -12,6 +12,29 @@
         </div>
 
         <div class="surface-card mt-6 p-6">
+            <div class="grid gap-4 md:grid-cols-3">
+                <div>
+                    <span class="block text-sm font-medium text-slate-500">Nomor Antrean</span>
+                    <span class="block text-2xl font-bold text-blue-700">
+                        {{ $booking->kode_antrean ?? ($booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-') }}
+                    </span>
+                </div>
+                <div>
+                    <span class="block text-sm font-medium text-slate-500">Tanggal Antrean</span>
+                    <span class="block text-base font-semibold text-slate-800">
+                        {{ optional($booking->tanggal_antrean)->format('d M Y') ?? \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y') }}
+                    </span>
+                </div>
+                <div>
+                    <span class="block text-sm font-medium text-slate-500">Nomor Harian</span>
+                    <span class="block text-base font-semibold text-slate-800">
+                        {{ $booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="surface-card mt-6 p-6">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <!-- Info Pelanggan -->
                 <div>

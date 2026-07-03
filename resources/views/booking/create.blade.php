@@ -24,6 +24,13 @@
             </div>
         @endif
 
+        @if (session('error_kuota'))
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>{{ session('error_kuota') }}</div>
+            </div>
+        @endif
+
         <div class="surface-card">
             <form action="{{ route('booking.store') }}" method="POST" class="form-shell">
                 @csrf

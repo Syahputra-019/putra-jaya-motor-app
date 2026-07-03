@@ -20,6 +20,9 @@ class Booking extends Model
         'sparepart_diminta',
         'keluhan',
         'jadwal_booking',
+        'tanggal_antrean',
+        'nomor_antrean',
+        'kode_antrean',
         'status',
         'status_pembayaran',
         'sparepart_terpakai',
@@ -34,6 +37,7 @@ class Booking extends Model
         'sparepart_diminta' => 'array',
         'rekomendasi_sparepart' => 'array',
         'jadwal_booking' => 'datetime',
+        'tanggal_antrean' => 'date',
     ];
 
     // Relasi ke tabel pelanggans

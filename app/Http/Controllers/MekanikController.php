@@ -120,6 +120,8 @@ class MekanikController extends Controller
             // Admin bisa lihat SEMUA motor yang lagi antre & diproses oleh SEMUA mekanik
             $bookings = Booking::with(['pelanggan', 'mekanik'])
                 ->whereIn('status', ['menunggu', 'diproses'])
+                ->orderBy('tanggal_antrean', 'asc')
+                ->orderBy('nomor_antrean', 'asc')
                 ->orderBy('jadwal_booking', 'asc')
                 ->get();
 
@@ -138,6 +140,8 @@ class MekanikController extends Controller
         $bookings = Booking::with('pelanggan')
             ->where('mekanik_id', $mekanik->id)
             ->whereIn('status', ['menunggu', 'diproses'])
+            ->orderBy('tanggal_antrean', 'asc')
+            ->orderBy('nomor_antrean', 'asc')
             ->orderBy('jadwal_booking', 'asc')
             ->get();
 

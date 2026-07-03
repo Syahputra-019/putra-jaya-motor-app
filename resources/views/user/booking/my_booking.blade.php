@@ -10,6 +10,14 @@
     $statusBadgeClass = 'badge-neutral';
     $headline = 'Belum ada servis aktif';
     $description = 'Booking servis Anda akan tampil di halaman ini setelah antrean berhasil dibuat.';
+    $activeBookingsAhead = $activeBookingsAhead ?? 0;
+    $nomorAntrean = '-';
+    $nomorHarian = '-';
+
+    if ($booking) {
+        $nomorAntrean = $booking->kode_antrean ?? ($booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-');
+        $nomorHarian = $booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-';
+    }
 
     if (in_array($bookingStatus, ['diproses', 'Proses'])) {
         $progressWidth = '33%';
@@ -99,7 +107,18 @@
                         <div class="flex flex-col gap-6">
                             <div class="tracking-card">
                                 <div
-                                    class="grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-3">
+                                    class="grid gap-5 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-2">
+                                    <div>
+                                        <div class="page-kicker">Nomor Antrean</div>
+                                        <div class="mt-2 text-xl font-bold text-blue-700">{{ $nomorAntrean }}</div>
+                                        <p class="mt-1 text-xs text-slate-500">{{ $activeBookingsAhead }} antrean aktif di depan</p>
+                                    </div>
+                                    <div>
+                                        <div class="page-kicker">Waktu Booking</div>
+                                        <div class="mt-2 text-xl font-bold text-slate-950">
+                                            {{ \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i') }}
+                                        </div>
+                                    </div>
                                     <div>
                                         <div class="page-kicker">Kendaraan</div>
                                         <div class="mt-2 text-xl font-bold text-slate-950">{{ $booking->tipe_motor }}</div>
@@ -107,12 +126,6 @@
                                     <div>
                                         <div class="page-kicker">Plat Nomor</div>
                                         <div class="mt-2 text-xl font-bold text-slate-950">{{ $booking->plat_nomor }}</div>
-                                    </div>
-                                    <div>
-                                        <div class="page-kicker">Jadwal</div>
-                                        <div class="mt-2 text-xl font-bold text-slate-950">
-                                            {{ \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i') }}
-                                        </div>
                                     </div>
                                 </div>
 
@@ -150,6 +163,11 @@
                                 <div
                                     class="mt-6 rounded-[24px] border border-slate-100 bg-white p-5 text-sm leading-7 text-slate-600">
                                     {{ $description }}
+                                    @if (in_array($bookingStatus, ['menunggu', 'diproses']))
+                                        <div class="mt-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 font-semibold text-blue-700">
+                                            Posisi antrean hari ini: {{ $nomorHarian }}. Ada {{ $activeBookingsAhead }} antrean aktif di depan Anda.
+                                        </div>
+                                    @endif
                                 </div>
 
                                 @if (!empty($booking->rekomendasi_sparepart))
@@ -343,7 +361,7 @@
                                                             {{ $b->tipe_motor }}</h4>
                                                         <p
                                                             class="{{ $booking->id == $b->id ? 'text-blue-600' : 'text-slate-400' }} mt-0.5 text-xs font-semibold uppercase tracking-wider">
-                                                            {{ $b->plat_nomor }}</p>
+                                                            {{ $b->kode_antrean ?? ($b->nomor_antrean ? '#' . str_pad((string) $b->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-') }}</p>
                                                     </div>
                                                 </div>
 
@@ -376,6 +394,14 @@
                             </div>
 
                             <div class="mt-6 space-y-4">
+                                <div class="rounded-[24px] border border-slate-100 bg-slate-50/80 p-4">
+                                    <div class="page-kicker">Nomor Antrean</div>
+                                    <div class="mt-2 text-2xl font-bold text-blue-700">{{ $nomorAntrean }}</div>
+                                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                                        Nomor harian {{ $nomorHarian }} untuk tanggal {{ optional($booking->tanggal_antrean)->format('d M Y') ?? \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y') }}.
+                                    </p>
+                                </div>
+
                                 <div class="rounded-[24px] border border-slate-100 bg-slate-50/80 p-4">
                                     <div class="page-kicker">Keluhan</div>
                                     <div class="mt-2 text-sm leading-7 text-slate-700">{{ $booking->keluhan }}</div>

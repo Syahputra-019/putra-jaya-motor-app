@@ -11,6 +11,8 @@ use App\Models\Testimonial;
 use App\Models\User;
 use App\Notifications\NewBookingNotification;
 use App\Notifications\PelangganNotification;
+use App\Support\BookingQueueService;
+use App\Support\DailyBookingQuotaExceededException;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -19,10 +21,11 @@ use Illuminate\Support\Facades\Notification;
 
 class LandingPageController extends Controller
 {
-    public function index()
+    public function index(BookingQueueService $queueService)
     {
         $booking = null;
         $pelanggan = null;
+        $activeBookingsAhead = 0;
         $spareparts = Sparepart::orderBy('nama_sparepart', 'asc')->get();
         $services = Service::orderBy('nama_service', 'asc')->get();
         
@@ -37,13 +40,17 @@ class LandingPageController extends Controller
                     ->where('user_id', auth()->id())
                     ->latest()
                     ->first();
+
+                if ($booking) {
+                    $activeBookingsAhead = $queueService->activeBookingsAhead($booking);
+                }
             }
         }
 
-        return view('landing', compact('booking', 'spareparts', 'services', 'pelanggan', 'testimonials'));
+        return view('landing', compact('booking', 'spareparts', 'services', 'pelanggan', 'testimonials', 'activeBookingsAhead'));
     }
 
-    public function storeBooking(Request $request)
+    public function storeBooking(Request $request, BookingQueueService $queueService)
     {
         $request->validate([
             'nama' => 'required|string|max:255',
@@ -60,16 +67,7 @@ class LandingPageController extends Controller
         try {
             DB::beginTransaction();
 
-            // Cek Kuota Booking (Maksimal 5 motor per hari) dengan penguncian (Lock For Update)
-            $tanggalBooking = Carbon::parse($request->jadwal_booking)->toDateString();
-            $jumlahBookingHariIni = Booking::whereDate('jadwal_booking', $tanggalBooking)
-                ->lockForUpdate()
-                ->count();
-
-            if ($jumlahBookingHariIni >= 5) {
-                DB::rollBack();
-                return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
-            }
+            $queueData = $queueService->makeQueueData($request->jadwal_booking);
 
             // START: Logic for automatic mechanic assignment (Round Robin)
             $mekanikIdToAssign = null;
@@ -121,7 +119,7 @@ class LandingPageController extends Controller
                 }, $kategori_servis);
             }
 
-            $booking = Booking::create([
+            $booking = Booking::create(array_merge([
                 'user_id' => Auth::id(),
                 'pelanggan_id' => $pelanggan->id,
                 'mekanik_id' => $mekanikIdToAssign,
@@ -133,9 +131,12 @@ class LandingPageController extends Controller
                 'sparepart_diminta' => $request->sparepart_diminta,
                 'status' => 'menunggu',
                 'status_pembayaran' => 'belum lunas',
-            ]);
+            ], $queueData));
 
             DB::commit();
+        } catch (DailyBookingQuotaExceededException $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error_kuota', 'Maaf bro, kuota booking tanggal ini sudah penuh. Silahkan lihat jadwal yang kosong.');
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
@@ -150,22 +151,25 @@ class LandingPageController extends Controller
             $user = User::find($booking->user_id);
             if ($user) {
                 $waktu = Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i');
-                $user->notify(new PelangganNotification('Booking Berhasil', "Booking servis kendaraan Anda ({$booking->plat_nomor}) untuk jadwal {$waktu} telah tersimpan. Silakan tunggu update selanjutnya dari mekanik.", route('pelanggan.riwayat')));
+                $nomorAntrean = $booking->kode_antrean ?? ('#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT));
+                $user->notify(new PelangganNotification('Booking Berhasil', "Booking servis kendaraan Anda ({$booking->plat_nomor}) untuk jadwal {$waktu} telah tersimpan dengan nomor antrean {$nomorAntrean}.", route('booking.mine', ['id' => $booking->id])));
             }
         }
 
         $this->sendWhatsApp($pelanggan, $booking);
 
-        return redirect()->back()->with('success', 'Booking berhasil! Tiket antrean sudah dikirim ke WhatsApp kamu.');
+        return redirect()->back()->with('success', 'Booking berhasil! Nomor antrean kamu ' . ($booking->kode_antrean ?? '#'.str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT)) . '. Tiket antrean sudah dikirim ke WhatsApp kamu.');
     }
 
     private function sendWhatsApp($pelanggan, $booking) {
         $token = env('FONNTE_TOKEN');
         $waktu = Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i');
+        $nomorAntrean = $booking->kode_antrean ?? ('#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT));
         
         $pesan = "Halo Kak *{$pelanggan->nama_pelanggan}* 👋\n\n";
         $pesan .= "Booking servis di *Putra Jaya Motor* BERHASIL!\n\n";
         $pesan .= "🎫 *TIKET ANTREAN DIGITAL*\n";
+        $pesan .= "Nomor Antrean: *{$nomorAntrean}*\n";
         $pesan .= "Plat: {$booking->plat_nomor}\n";
         $pesan .= "Motor: {$booking->tipe_motor}\n";
         $pesan .= "Jadwal: *{$waktu}*\n\n";

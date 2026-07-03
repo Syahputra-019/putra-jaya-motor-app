@@ -41,7 +41,11 @@
             <h3 class="mb-4 text-lg font-bold text-slate-800">Jadwal & Status</h3>
             <div class="space-y-3 text-sm">
                 <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500">Jadwal Servis</span>
+                    <span class="text-slate-500">Nomor Antrean</span>
+                    <span class="font-bold text-blue-700">{{ $booking->kode_antrean ?? ($booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-') }}</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-100 pb-2">
+                    <span class="text-slate-500">Waktu Booking</span>
                     <span class="font-medium text-slate-900">{{ \Carbon\Carbon::parse($booking->jadwal_booking)->format('d M Y, H:i') }}</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-100 pb-2">

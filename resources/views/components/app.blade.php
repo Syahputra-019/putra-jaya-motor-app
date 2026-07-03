@@ -277,8 +277,10 @@
                         <li><a href="{{ route('landing') }}#layanan"
                                 class="text-sm text-slate-500 transition hover:text-blue-600">Layanan</a></li>
                         <li><a href="{{ route('landing') }}#booking"
-                                class="text-sm text-slate-500 transition hover:text-blue-600">Booking Servis</a>
+                                class="text-sm text-slate-500 transition hover:text-blue-600">Booking</a>
                         </li>
+                        <li><a href="{{ route('landing') }}#testimonial"
+                                class="text-sm text-slate-500 transition hover:text-blue-600">Testimonial</a></li>
                     </ul>
                 </div>
 
@@ -287,7 +289,7 @@
                     <h4 class="mb-4 text-sm font-bold text-slate-900">Kontak Kami</h4>
                     <ul class="space-y-2 text-sm text-slate-500">
                         <li>WA: 895403829601</li>
-                        <li>Jl. Ikan Gurami No.14</li>
+                        <li>Jl. Ikan Gurami No.</li>
                         <li>Buka: Setiap Hari (08:00 - 17:00)</li>
                     </ul>
                 </div>

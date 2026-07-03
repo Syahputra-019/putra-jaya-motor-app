@@ -45,11 +45,17 @@
         @else
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 @foreach ($bookings as $b)
+                    @php
+                        $nomorAntrean = $b->kode_antrean ?? ($b->nomor_antrean ? '#' . str_pad((string) $b->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-');
+                    @endphp
                     <div class="surface-card">
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <p class="page-kicker">Jadwal
-                                    {{ \Carbon\Carbon::parse($b->jadwal_booking)->format('H:i') }} WIB</p>
+                                <p class="page-kicker">Waktu Booking
+                                    {{ \Carbon\Carbon::parse($b->jadwal_booking)->format('d M Y') }}</p>
+                                <div class="mt-2 inline-flex rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+                                    Antrean {{ $nomorAntrean }}
+                                </div>
                                 <h2 class="mt-2 text-2xl font-bold text-slate-950">
                                     {{ $b->pelanggan->nama_pelanggan ?? $b->pelanggan->name }}</h2>
                                 <p class="mt-2 text-sm text-slate-500">{{ $b->tipe_motor }} - {{ $b->plat_nomor }}</p>

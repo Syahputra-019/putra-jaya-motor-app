@@ -24,10 +24,27 @@
             </div>
         @endif
 
+        @if (session('error_kuota'))
+            <div class="alert alert-danger">
+                <div class="font-black">!</div>
+                <div>{{ session('error_kuota') }}</div>
+            </div>
+        @endif
+
         <div class="surface-card">
             <form action="{{ route('booking.update', $booking->id) }}" method="POST" class="form-shell">
                 @csrf
                 @method('PUT')
+
+                <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                    <div class="page-kicker">Nomor Antrean Saat Ini</div>
+                    <div class="mt-2 text-2xl font-bold text-blue-700">
+                        {{ $booking->kode_antrean ?? ($booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : 'Belum ada nomor') }}
+                    </div>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Jika tanggal booking diubah, sistem akan membuat nomor antrean baru untuk tanggal tersebut.
+                    </p>
+                </div>
 
                 <div class="form-field">
                     <label class="field-label" for="pelanggan_id">Pilih pelanggan</label>

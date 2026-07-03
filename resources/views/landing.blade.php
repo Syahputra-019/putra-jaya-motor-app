@@ -150,6 +150,8 @@
                                 $bookingStatus = $booking->status ?? null;
                                 $paymentStatus = $booking->status_pembayaran ?? null;
                                 $progressWidth = '0%';
+                                $activeBookingsAhead = $activeBookingsAhead ?? 0;
+                                $nomorAntrean = $booking->kode_antrean ?? ($booking->nomor_antrean ? '#' . str_pad((string) $booking->nomor_antrean, 3, '0', STR_PAD_LEFT) : '-');
 
                                 if (in_array($bookingStatus, ['diproses', 'Proses'])) {
                                     $progressWidth = '33%';
@@ -164,7 +166,12 @@
                                 }
                             @endphp
                             <div
-                                class="mt-6 grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-3">
+                                class="mt-6 grid gap-4 rounded-[28px] border border-slate-100 bg-slate-50/80 p-5 md:grid-cols-4">
+                                <div>
+                                    <div class="page-kicker">Nomor Antrean</div>
+                                    <div class="mt-2 text-xl font-bold text-blue-700">{{ $nomorAntrean }}</div>
+                                    <p class="mt-1 text-xs text-slate-500">{{ $activeBookingsAhead }} antrean aktif di depan</p>
+                                </div>
                                 <div>
                                     <div class="page-kicker">Kendaraan</div>
                                     <div class="mt-2 text-xl font-bold text-slate-950">{{ $booking->tipe_motor }}</div>
@@ -231,7 +238,7 @@
                             <div
                                 class="mt-6 rounded-[24px] border border-slate-100 bg-white p-5 text-sm leading-7 text-slate-600">
                                 @if (in_array($bookingStatus, ['menunggu', 'Pending']))
-                                    Kendaraan Anda sudah masuk antrean dan sedang menunggu giliran mekanik.
+                                    Kendaraan Anda sudah masuk antrean {{ $nomorAntrean }} dan sedang menunggu giliran mekanik. Ada {{ $activeBookingsAhead }} antrean aktif di depan Anda.
                                 @elseif(in_array($bookingStatus, ['diproses', 'Proses']))
                                     Mekanik sedang mengerjakan kendaraan Anda. Progres akan diperbarui setelah servis
                                     selesai.
